@@ -822,6 +822,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 [data-sec="monthly"] .hero,#mstick .mdash{touch-action:pan-y}
 .flowlist .ev.pay{background:color-mix(in srgb,var(--surplus) 14%,var(--surface))}
 .chart svg .grid .gl{stroke:var(--line);stroke-width:1;stroke-dasharray:3 4;opacity:.7}
+header{display:none!important}
+[data-sec="flow"] > h2 .htitle,[data-sec="monthly"] > h2 .htitle,[data-sec="dash"] > h2 .htitle,.trendhd .htitle{font-size:23.5px!important}#secs[data-dtab="inputs"] .grp-h .htitle,#grpHead .htitle{font-size:23.5px!important}#grpHead .hright #save{font-size:11px;line-height:14px;padding-right:8px;margin:0;white-space:nowrap;max-width:none;overflow:visible}#grpHead .hright #save:not(.warn):not(.need){color:color-mix(in srgb,var(--muted) 75%,transparent)}
+h2:has(> .hright){align-items:center!important}.hright{margin-right:18px;margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:0 0 auto}
+.hright .sedit{margin-left:0!important;align-self:flex-end}
+.hright .hupd{font-size:11px;line-height:14px;color:color-mix(in srgb,var(--muted) 75%,transparent);white-space:nowrap;padding-right:8px}
+[data-sec="dash"] > h2:has(> .hright),[data-sec="flow"] > h2:has(> .hright),[data-sec="monthly"] > h2:has(> .hright),h2.trendhd:has(> .hright){margin-bottom:5px!important}
+#grpHead{margin-bottom:-1px!important}
+#undoOk{order:4;display:inline-flex;align-items:center;border:0;border-radius:999px;padding:9px 18px;background:#586F4C;color:#fff;font:inherit;font-size:13px;box-shadow:0 6px 18px rgba(24,33,29,.18);cursor:pointer;white-space:nowrap;animation:updIn .25s ease}#undoOk[hidden]{display:none}
 </style>
 
 <div class="wrap">
@@ -2239,11 +2247,12 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
     const snap={s:JSON.parse(JSON.stringify(S)),d:(typeof D!=="undefined"&&D&&D!==S)?JSON.parse(JSON.stringify(D)):null};
     run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);changed(true);undoShow(snap)};
   // 되돌리기
-  const ub0=document.getElementById("updBar");const ubtn=document.createElement("button");ubtn.id="undoBtn";ubtn.type="button";ubtn.hidden=true;if(ub0)ub0.appendChild(ubtn);
-  let US=[],UT=0;const ulbl=()=>{ubtn.textContent="되돌리기 ("+US.length+")";ubtn.hidden=!US.length};const undoHide=()=>{US=[];ulbl();clearTimeout(UT)};
+  const ub0=document.getElementById("updBar");const ubtn=document.createElement("button");ubtn.id="undoBtn";ubtn.type="button";ubtn.hidden=true;if(ub0)ub0.appendChild(ubtn);const uok=document.createElement("button");uok.id="undoOk";uok.type="button";uok.hidden=true;uok.textContent="완료";if(ub0)ub0.appendChild(uok);
+  let US=[],UT=0;const ulbl=()=>{ubtn.textContent="되돌리기 ("+US.length+")";ubtn.hidden=!US.length;uok.hidden=!US.length};const undoHide=()=>{US=[];ulbl();clearTimeout(UT)};
   const put_=(T,o)=>{Object.keys(T).forEach(k=>delete T[k]);Object.assign(T,JSON.parse(JSON.stringify(o)))};
-  const undoShow=snap=>{US.push(snap);ulbl();clearTimeout(UT);UT=setTimeout(undoHide,60000)};
-  ubtn.addEventListener("click",()=>{if(!US.length)return;const u=US.pop();ulbl();clearTimeout(UT);if(US.length)UT=setTimeout(undoHide,60000);put_(S,u.s);if(u.d&&typeof D!=="undefined"&&D&&D!==S)put_(D,u.d);changed(true)});
+  const undoShow=snap=>{US.push(snap);ulbl();clearTimeout(UT);UT=setTimeout(undoHide,15000)};
+  ubtn.addEventListener("click",()=>{if(!US.length)return;const u=US.pop();ulbl();clearTimeout(UT);if(US.length)UT=setTimeout(undoHide,15000);put_(S,u.s);if(u.d&&typeof D!=="undefined"&&D&&D!==S)put_(D,u.d);changed(true)});
+  uok.addEventListener("click",undoHide);
   document.addEventListener("input",e=>{if(US.length&&e.target.closest&&e.target.closest("#grpBody"))undoHide()},true);
   // 시트
   const box=document.createElement("div");box.id="rollSheet";box.hidden=true;document.body.appendChild(box);
@@ -2418,5 +2427,15 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
 
 // ---------- 12 Month: 추가 차트도 탭 들어올 때 막대 애니메이션 ----------
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#nbar [data-nb="trend"],#dtabs [data-dtab="trend"]');if(!b)return;const nw=performance.now();if(nw-(window.__xcA||0)<300)return;window.__xcA=nw;requestAnimationFrame(()=>document.querySelectorAll('[data-sec="monthly"] > .trendsec.xc svg').forEach(v=>{v.classList.remove("anim");v.getBoundingClientRect();v.classList.add("anim");clearTimeout(v._at);v._at=setTimeout(()=>v.classList.remove("anim"),1800);try{countUp(v)}catch(_){}}))},true);
+
+// ---------- 탭 제목 오른쪽: 업데이트 날짜 + Edit 두 줄 (맨 위 제목 줄 없앰) ----------
+(()=>{const SEL='[data-sec="dash"] > h2,[data-sec="flow"] > h2,[data-sec="monthly"] > h2,h2.trendhd';
+  const fix=()=>{document.querySelectorAll(SEL).forEach(h=>{let w=h.querySelector(":scope > .hright");if(!w){w=document.createElement("span");w.className="hright";h.appendChild(w)}
+    if(!w.querySelector(".hupd")){const u=document.createElement("small");u.className="hupd upd-at";u.dataset.at="flow";const src=document.getElementById("hdUpd");u.textContent=src?src.textContent:"";w.prepend(u)}
+    const ed=h.querySelector(":scope > .sedit");if(ed)w.appendChild(ed)});
+    {const h=document.getElementById("grpHead");if(h){let w=h.querySelector(":scope > .hright");if(!w){w=document.createElement("span");w.className="hright";h.appendChild(w)}const sv=document.getElementById("save");if(sv&&sv.parentElement!==w)w.prepend(sv);const ed=h.querySelector(":scope > .tedbtn");if(ed)w.appendChild(ed)}}};
+  if(typeof titleLock==="function"){const _t=titleLock;titleLock=function(){const r=_t.apply(this,arguments);try{fix()}catch(_){}return r}}
+  const _r=render;render=function(){const r=_r.apply(this,arguments);try{fix()}catch(_){}return r};
+  try{fix();render()}catch(_){}})();
 </script>
 
