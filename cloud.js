@@ -1,5 +1,7 @@
 // 저장소 연결: 앱이 쓰던 window.claude.use("db") 자리를 Supabase로 대신함
 (()=>{
+  // 서버가 기준: 이 기기에 남은 예전 저장본이 서버 데이터를 덮어쓰지 않게 지움
+  try{localStorage.removeItem("budget3");localStorage.removeItem("budgetDraft")}catch(_){}
   const C=window.BUDGET_CONFIG||{};const DOC=window.BUDGET_DOC||"budget/main";
   const ok=!!(C.SUPABASE_URL&&C.SUPABASE_ANON_KEY&&window.supabase);
   const sb=ok?window.supabase.createClient(C.SUPABASE_URL,C.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
