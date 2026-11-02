@@ -15,7 +15,7 @@
 #authGate button.sub{background:transparent;color:#696A5D;padding:6px}#authGate .msg{font-size:13px;color:#696A5D;min-height:18px}
 @media (prefers-color-scheme:dark){#authGate{background:#141416;color:#E8E8EA}#authGate input{background:#1E1E20;border-color:#333;color:#E8E8EA}#authGate button{background:#9DBBA6;color:#141416}}`;
   // 홈 화면 앱: 맨 위 상태바(시계·배터리) 아래부터 화면 시작
-  const css2=`@media (display-mode: standalone){#scr{top:env(safe-area-inset-top,0px)!important}}`;
+  const css2=`@media (display-mode: standalone){#scr{top:max(env(safe-area-inset-top,0px),50px)!important}}`;
   const st=document.createElement("style");st.textContent=css+css2;document.head.appendChild(st);
   const g=document.createElement("div");g.id="authGate";g.hidden=true;
   g.innerHTML=`<form class="ag"><h1>가계부</h1><input type="email" name="e" placeholder="이메일" autocomplete="email" required><input type="password" name="p" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" minlength="6" required><button type="submit">로그인</button><button type="button" class="sub" data-a="up">가입</button><div class="msg"></div></form>`;
@@ -42,5 +42,5 @@
 })();
 
 // 새 버전 올라오면 앱 다시 열 때(화면으로 돌아올 때) 자동으로 새로고침
-(()=>{const V="2026-11-02-3";const chk=()=>{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{if(t&&t.trim()&&t.trim()!==V){const k="rl_"+t.trim();try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(_){}location.reload()}}).catch(()=>{})};
+(()=>{const V="2026-11-02-4";const chk=()=>{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{if(t&&t.trim()&&t.trim()!==V){const k="rl_"+t.trim();try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(_){}location.reload()}}).catch(()=>{})};
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")chk()});window.addEventListener("load",()=>setTimeout(chk,1500))})();
