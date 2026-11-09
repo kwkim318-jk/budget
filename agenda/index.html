@@ -508,6 +508,14 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] .subs .subt:hover{background:rgba(255,255,255,.05)}
 :root[data-bg="linear"] .subs .done .subt{text-decoration:line-through;color:var(--faint)}
 :root[data-bg="linear"] .subs .subedit{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:0;border-radius:5px;padding:2px 6px;margin:-2px -6px;outline:none;box-shadow:inset 0 0 0 1px var(--accent)}
+
+:root[data-bg="linear"] .subs .subt{cursor:pointer;user-select:none;-webkit-user-select:none}
+:root[data-bg="linear"] .subs .subt:hover{background:none}
+:root[data-bg="linear"] .subs .ed{flex:none;width:26px;height:26px;border:0;background:none;border-radius:6px;display:grid;place-items:center;color:var(--faint);padding:0;opacity:0;cursor:pointer}
+:root[data-bg="linear"] .subs .ed svg{width:14px;height:14px}
+:root[data-bg="linear"] .subs li:hover .ed,:root[data-bg="linear"] .subs .ed:focus-visible{opacity:1}
+:root[data-bg="linear"] .subs .ed:hover{background:rgba(255,255,255,.07);color:var(--ink)}
+@media (hover:none){:root[data-bg="linear"] .subs .ed{opacity:.6}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -630,7 +638,7 @@ function itemHTML(it){
       '<label class="prop"><span class="pk">분류</span><select class="pv" id="cat-'+it.id+'" data-act="cat">'+catOptions(it.cat)+'</select></label></div>'+
       '<textarea class="dt-note" id="note-'+it.id+'" data-act="note" rows="2" placeholder="메모 추가…" aria-label="메모">'+esc(it.note)+'</textarea>'+
       '<div class="sublist"><div class="subhead"><span>세부 체크리스트</span>'+(it.subs.length?'<span class="subprog">'+subsDone+'/'+it.subs.length+'</span>':'')+'</div><ul class="subs">'+it.subs.map(function(s,i){
-        return '<li class="'+(s.d?'done':'')+'"><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+' aria-label="'+esc(s.t)+' 완료"> '+(editingSub===it.id+':'+i?'<input class="subedit" id="subedit-'+it.id+'-'+i+'" data-act="subtext" data-i="'+i+'" value="'+esc(s.t)+'" aria-label="세부 항목 수정">':'<span class="subt" data-act="subedit" data-i="'+i+'" title="눌러서 수정">'+esc(s.t)+'</span>')+'<button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
+        return '<li class="'+(s.d?'done':'')+'"><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+' aria-label="'+esc(s.t)+' 완료"> '+(editingSub===it.id+':'+i?'<input class="subedit" id="subedit-'+it.id+'-'+i+'" data-act="subtext" data-i="'+i+'" value="'+esc(s.t)+'" aria-label="세부 항목 수정">':'<span class="subt" data-act="subtoggle" data-i="'+i+'">'+esc(s.t)+'</span><button class="ed" data-act="subedit" data-i="'+i+'" aria-label="'+esc(s.t)+' 수정" title="수정">'+IC.pen+'</button>')+'<button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
       }).join('')+'</ul>'+
       '<div class="subadd"><span class="plus" aria-hidden="true">+</span><input id="subadd-'+it.id+'" class="subin" data-act="subadd" placeholder="세부 항목 추가 후 Enter" aria-label="세부 항목 추가"></div></div>'+
       '<div class="dfoot"><button class="dlink" data-act="rename">제목 수정</button><button class="dlink'+(armed===it.id?' armed':'')+'" data-act="del">'+(armed===it.id?'한 번 더 누르면 삭제':'항목 삭제')+'</button></div>'+
@@ -785,6 +793,7 @@ root.addEventListener('click',function(e){
   if(act==='expand'){open[it.id]=!open[it.id];if(!open[it.id])delete open[it.id];armed=null;keepOpen();render();return;}
   if(act==='toggle'){mutate(function(){if(it.status==='done'){it.status=it.prev||'todo';}else{it.prev=it.status;it.status='done';}});return;}
   if(act==='pin'){mutate(function(){it.pin=!it.pin;});return;}
+  if(act==='subtoggle'){var k=+a.getAttribute('data-i');mutate(function(){it.subs[k].d=!it.subs[k].d;});return;}
   if(act==='subedit'){editingSub=it.id+':'+a.getAttribute('data-i');render();var se=document.getElementById('subedit-'+it.id+'-'+a.getAttribute('data-i'));if(se){se.focus();var L=se.value.length;se.setSelectionRange(L,L);}return;}
   if(act==='subdel'){var i=+a.getAttribute('data-i');mutate(function(){it.subs.splice(i,1);});return;}
   if(act==='subaddbtn'){addSub(it);return;}
