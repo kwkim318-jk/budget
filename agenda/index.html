@@ -501,6 +501,13 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 .appfoot{display:flex;justify-content:center;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
 .appfoot button{border:0;background:none;color:#878c95;font:inherit;font-size:12.5px;padding:6px 10px;border-radius:6px;cursor:pointer}
 .appfoot button:hover{background:rgba(255,255,255,.05);color:#b4b8c0}
+
+/* subtask inline edit */
+:root[data-bg="linear"] .subs li{gap:10px}
+:root[data-bg="linear"] .subs .subt{flex:1;min-width:0;overflow-wrap:anywhere;cursor:text;line-height:1.45;padding:2px 6px;margin:-2px -6px;border-radius:5px}
+:root[data-bg="linear"] .subs .subt:hover{background:rgba(255,255,255,.05)}
+:root[data-bg="linear"] .subs .done .subt{text-decoration:line-through;color:var(--faint)}
+:root[data-bg="linear"] .subs .subedit{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:var(--field);border:0;border-radius:5px;padding:2px 6px;margin:-2px -6px;outline:none;box-shadow:inset 0 0 0 1px var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -518,7 +525,7 @@ var SL={};STATUS.forEach(function(s){SL[s[0]]=s[1];});
 if(!S.cats)S.cats=[{id:'imm',name:'이민·서류'},{id:'money',name:'재정'},{id:'work',name:'회사'},{id:'career',name:'커리어·자격증'},{id:'life',name:'생활'}];
 var WD=['일','월','화','수','목','금','토'];
 var LSKEY='agenda-app-v1';
-var editingTitle=null,inlineCat=null,filter='open',q='',showAdd=false,addDefCat='',armed=null,armedCat=null,menuOpen=null,editingCat=null,addingCat=false;
+var editingSub=null,editingTitle=null,inlineCat=null,filter='open',q='',showAdd=false,addDefCat='',armed=null,armedCat=null,menuOpen=null,editingCat=null,addingCat=false;
 var open={},collapsed={};
 try{var o=sessionStorage.getItem(LSKEY+'-open');if(o)open=JSON.parse(o)||{};}catch(e){}
 try{var cz=localStorage.getItem(LSKEY+'-collapsed');if(cz)collapsed=JSON.parse(cz)||{};}catch(e){}
@@ -623,7 +630,7 @@ function itemHTML(it){
       '<label class="prop"><span class="pk">분류</span><select class="pv" id="cat-'+it.id+'" data-act="cat">'+catOptions(it.cat)+'</select></label></div>'+
       '<textarea class="dt-note" id="note-'+it.id+'" data-act="note" rows="2" placeholder="메모 추가…" aria-label="메모">'+esc(it.note)+'</textarea>'+
       '<div class="sublist"><div class="subhead"><span>세부 체크리스트</span>'+(it.subs.length?'<span class="subprog">'+subsDone+'/'+it.subs.length+'</span>':'')+'</div><ul class="subs">'+it.subs.map(function(s,i){
-        return '<li class="'+(s.d?'done':'')+'"><label><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+'><span>'+esc(s.t)+'</span></label><button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
+        return '<li class="'+(s.d?'done':'')+'"><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+' aria-label="'+esc(s.t)+' 완료"> '+(editingSub===it.id+':'+i?'<input class="subedit" id="subedit-'+it.id+'-'+i+'" data-act="subtext" data-i="'+i+'" value="'+esc(s.t)+'" aria-label="세부 항목 수정">':'<span class="subt" data-act="subedit" data-i="'+i+'" title="눌러서 수정">'+esc(s.t)+'</span>')+'<button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
       }).join('')+'</ul>'+
       '<div class="subadd"><span class="plus" aria-hidden="true">+</span><input id="subadd-'+it.id+'" class="subin" data-act="subadd" placeholder="세부 항목 추가 후 Enter" aria-label="세부 항목 추가"></div></div>'+
       '<div class="dfoot"><button class="dlink" data-act="rename">제목 수정</button><button class="dlink'+(armed===it.id?' armed':'')+'" data-act="del">'+(armed===it.id?'한 번 더 누르면 삭제':'항목 삭제')+'</button></div>'+
@@ -778,6 +785,7 @@ root.addEventListener('click',function(e){
   if(act==='expand'){open[it.id]=!open[it.id];if(!open[it.id])delete open[it.id];armed=null;keepOpen();render();return;}
   if(act==='toggle'){mutate(function(){if(it.status==='done'){it.status=it.prev||'todo';}else{it.prev=it.status;it.status='done';}});return;}
   if(act==='pin'){mutate(function(){it.pin=!it.pin;});return;}
+  if(act==='subedit'){editingSub=it.id+':'+a.getAttribute('data-i');render();var se=document.getElementById('subedit-'+it.id+'-'+a.getAttribute('data-i'));if(se){se.focus();var L=se.value.length;se.setSelectionRange(L,L);}return;}
   if(act==='subdel'){var i=+a.getAttribute('data-i');mutate(function(){it.subs.splice(i,1);});return;}
   if(act==='subaddbtn'){addSub(it);return;}
   if(act==='del'){if(armed===it.id){mutate(function(){S.items=S.items.filter(function(x){return x.id!==it.id;});delete open[it.id];armed=null;});}else{armed=it.id;render();}return;}
@@ -789,6 +797,7 @@ root.addEventListener('change',function(e){
   if(act==='newcatinput')return;
   var li=a.closest('.item');var it=find(li&&li.getAttribute('data-id'));if(!it)return;
   if(act==='sub'){var i=+a.getAttribute('data-i');mutate(function(){it.subs[i].d=a.checked;});}
+  else if(act==='subtext'){var j=+a.getAttribute('data-i');var v2=a.value.trim();editingSub=null;if(!v2)mutate(function(){it.subs.splice(j,1);});else if(it.subs[j]&&v2!==it.subs[j].t)mutate(function(){it.subs[j].t=v2;});else render();}
   else if(act==='title'){var v=a.value.trim();editingTitle=null;if(v&&v!==it.title)mutate(function(){it.title=v;});else render();}
   else if(act==='due'){mutate(function(){it.due=a.value||'';});}
   else if(act==='cat'){mutate(function(){it.cat=a.value;});}
@@ -802,8 +811,9 @@ root.addEventListener('keydown',function(e){
   var act=e.target.getAttribute&&e.target.getAttribute('data-act');
   if(e.target.id==='new-catname'&&e.key==='Escape'){e.preventDefault();backToCatSelect(e.target.closest('.catnew'));return;}
   if(e.key==='Enter'&&act==='subadd'){e.preventDefault();var li=e.target.closest('.item');var it=li&&find(li.getAttribute('data-id'));if(it)addSub(it);}
-  else if(act==='catname'){if(e.key==='Enter'){e.preventDefault();commitCatName(e.target);}else if(e.key==='Escape'){editingCat=null;render();}}
-  else if(act==='title'){if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){editingTitle=null;render();}}
+  else if(act==='catname'){if(e.key==='Enter'){e.preventDefault();commitCatName(e.target);}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;editingCat=null;render();}}
+  else if(act==='subtext'){if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;editingSub=null;render();}}
+  else if(act==='title'){if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;editingTitle=null;render();}}
   else if(act==='inltitle'){var sc=e.target.closest('section.cat');if(e.key==='Enter'){e.preventDefault();if(sc)commitInline(sc.getAttribute('data-cat'));}else if(e.key==='Escape'){inlineCat=null;render();}}
   else if(act==='newcatinput'){if(e.key==='Enter'){e.preventDefault();commitNewCat();}else if(e.key==='Escape'){addingCat=false;render();}}
 });
