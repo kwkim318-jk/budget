@@ -683,6 +683,7 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .rephint{font-size:12px;color:var(--faint);min-width:0}
 :root[data-bg="linear"] .addform{grid-template-columns:minmax(0,1fr) 136px 140px 88px 88px 112px}:root[data-bg="linear"] .addform select:disabled{opacity:.4;cursor:default}
 :root[data-bg="linear"] .wdpick{position:relative;display:inline-flex}
+:root[data-bg="linear"] .dclr{width:22px;height:22px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--faint);cursor:pointer;padding:0;margin-left:-2px}:root[data-bg="linear"] .dclr svg{width:12px;height:12px}:root[data-bg="linear"] .dclr:hover{color:var(--ink);background:rgba(255,255,255,.08)}
 :root[data-bg="linear"] .wdbtn{border:0;background:transparent;color:var(--ink);font:inherit;font-size:12.5px;font-weight:500;padding:3px 22px 3px 6px;border-radius:4px;cursor:pointer;white-space:nowrap;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-size:4px 4px,4px 4px;background-repeat:no-repeat;background-position:calc(100% - 11px) 52%,calc(100% - 7px) 52%}
 :root[data-bg="linear"] .wdbtn:disabled{opacity:.4;cursor:default}
 :root[data-bg="linear"] .wdmenu{position:absolute;left:0;top:calc(100% + 6px);z-index:60;display:flex;gap:4px;padding:6px;border-radius:8px;background:#16171a;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 16px 40px rgba(0,0,0,.6)}
@@ -856,7 +857,7 @@ function itemHTML(it){
     '<button class="pin" data-act="pin" aria-pressed="'+(it.pin?'true':'false')+'" aria-label="우선순위 고정" title="우선순위 고정">'+IC.star+'</button><button class="x" data-act="itemdel" aria-label="'+esc(it.title)+' 삭제" title="삭제">×</button></div><button class="swdel" data-act="itemdel" tabindex="-1" aria-label="'+esc(it.title)+' 삭제"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg></button>';
   if(open[it.id]){
     h+='<div class="detail">'+
-      '<div class="props"><label class="prop"><span class="pk">기한</span><input class="pv" type="date" id="due-'+it.id+'" data-act="due" value="'+esc(it.due)+'"></label>'+
+      '<div class="props"><label class="prop"><span class="pk">기한</span><input class="pv" type="date" id="due-'+it.id+'" data-act="due" value="'+esc(it.due)+'">'+(it.due?'<button type="button" class="dclr" data-act="dueclr" aria-label="기한 지우기" title="기한 지우기"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l8 8M14 6l-8 8"/></svg></button>':'')+'</label>'+
       '<label class="prop"><span class="pk">분류</span><select class="pv" id="cat-'+it.id+'" data-act="cat">'+catOptions(it.cat)+'</select></label>'+
       '<label class="prop"><span class="pk">유형</span><select class="pv" id="kind-'+it.id+'" data-act="kind">'+kindOpts(kindOf(it))+'</select></label>'+
       (it.rep?'<label class="prop"><span class="pk">주기</span><select class="pv" id="rep-'+it.id+'" data-act="rep">'+repOpts(it.rep)+'</select></label>':'')+
@@ -1176,6 +1177,7 @@ root.addEventListener('click',function(e){
   if(act==='expand'){open[it.id]=!open[it.id];if(!open[it.id])delete open[it.id];armed=null;keepOpen();render();return;}
   if(act==='toggle'){mutate(function(){if(it.status==='done'){it.status=it.prev||'todo';}else if(it.rep){completeRep(it);}else{it.prev=it.status;it.status='done';}});return;}
   if(act==='pin'){mutate(function(){it.pin=!it.pin;});return;}
+  if(act==='dueclr'){e.preventDefault();mutate(function(){it.due='';});return;}
   if(act==='itemdel'){deleteItem(it.id);return;}
   if(act==='subtoggle'){var k=+a.getAttribute('data-i');mutate(function(){it.subs[k].d=!it.subs[k].d;});return;}
   if(act==='subedit'){editingSub=it.id+':'+a.getAttribute('data-i');render();var se=document.getElementById('subedit-'+it.id+'-'+a.getAttribute('data-i'));if(se){se.focus();var L=se.value.length;se.setSelectionRange(L,L);}return;}
