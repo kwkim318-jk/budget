@@ -551,8 +551,8 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] .ib.mv:disabled{opacity:.25;cursor:default;background:none}
 
 /* category drag reorder */
-:root[data-bg="linear"] .grip{flex:none;width:18px;height:28px;position:absolute;left:1px;top:50%;transform:translateY(-50%);width:13px;margin:0;z-index:2;border:0;background:none;color:var(--faint);display:grid;place-items:center;cursor:grab;opacity:0;touch-action:none;border-radius:5px;padding:0;transition:opacity .15s}
-:root[data-bg="linear"] .grip svg{width:8px;height:12px}
+:root[data-bg="linear"] .grip{flex:none;width:18px;height:28px;position:absolute;left:6px;top:50%;transform:translateY(-50%);width:14px;margin:0;z-index:2;border:0;background:none;color:var(--faint);display:grid;place-items:center;cursor:grab;opacity:0;touch-action:none;border-radius:5px;padding:0;transition:opacity .15s}
+:root[data-bg="linear"] .grip svg{width:9px;height:13px}
 :root[data-bg="linear"] .cath:hover .grip,:root[data-bg="linear"] .grip:focus-visible{opacity:1}
 :root[data-bg="linear"] .grip:hover{color:var(--ink);background:rgba(255,255,255,.06)}
 @media (hover:none){:root[data-bg="linear"] .grip{opacity:.4}}
@@ -563,6 +563,8 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] section.cat.dragging .cath{background:#24252b;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.12),0 14px 34px rgba(0,0,0,.55)}
 :root[data-bg="linear"] section.cat.dragging .grip{opacity:1;color:var(--ink)}
 body.dragging-cat,body.dragging-cat *{cursor:grabbing!important}
+:root[data-bg="linear"] .groups > section.cat[data-cat] > .cath{padding-left:26px}
+@media (max-width:540px){:root[data-bg="linear"] .groups > section.cat[data-cat] > .cath{padding-left:26px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
