@@ -551,12 +551,12 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] .ib.mv:disabled{opacity:.25;cursor:default;background:none}
 
 /* category drag reorder */
-:root[data-bg="linear"] .grip{flex:none;width:18px;height:28px;margin:0 -2px 0 -8px;border:0;background:none;color:var(--faint);display:grid;place-items:center;cursor:grab;opacity:0;touch-action:none;border-radius:5px;padding:0;transition:opacity .15s}
-:root[data-bg="linear"] .grip svg{width:10px;height:14px}
+:root[data-bg="linear"] .grip{flex:none;width:18px;height:28px;position:absolute;left:1px;top:50%;transform:translateY(-50%);width:13px;margin:0;z-index:2;border:0;background:none;color:var(--faint);display:grid;place-items:center;cursor:grab;opacity:0;touch-action:none;border-radius:5px;padding:0;transition:opacity .15s}
+:root[data-bg="linear"] .grip svg{width:8px;height:12px}
 :root[data-bg="linear"] .cath:hover .grip,:root[data-bg="linear"] .grip:focus-visible{opacity:1}
 :root[data-bg="linear"] .grip:hover{color:var(--ink);background:rgba(255,255,255,.06)}
 @media (hover:none){:root[data-bg="linear"] .grip{opacity:.4}}
-:root[data-bg="linear"] .cath{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+:root[data-bg="linear"] .cath{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;position:relative}
 :root[data-bg="linear"] .groups.reordering > section.cat > :not(.cath){display:none}
 :root[data-bg="linear"] .groups.reordering > section.cat{transition:transform .18s ease}
 :root[data-bg="linear"] section.cat.dragging{position:relative;z-index:60;transition:none!important}
