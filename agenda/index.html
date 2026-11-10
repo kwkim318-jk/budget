@@ -681,7 +681,7 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .rchips button[aria-pressed="true"]{background:rgba(113,128,240,.16);box-shadow:inset 0 0 0 1px rgba(113,128,240,.45);color:#c7cdfb}
 :root[data-bg="linear"] .prow.hint{margin-top:-2px}:root[data-bg="linear"] .prow[hidden]{display:none}
 :root[data-bg="linear"] .rephint{font-size:12px;color:var(--faint);min-width:0}
-:root[data-bg="linear"] .addform{grid-template-columns:minmax(0,1fr) 150px 150px 100px 100px}:root[data-bg="linear"] .addform select:disabled{opacity:.4;cursor:default}@media (max-width:720px){:root[data-bg="linear"] .addform{grid-template-columns:1fr 1fr}:root[data-bg="linear"] .addform .field:first-child{grid-column:1/-1}}:root[data-bg="linear"] .addform .repctl{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;gap:12px 24px}:root[data-bg="linear"] .addform .prow{flex-direction:column;align-items:flex-start;gap:6px}:root[data-bg="linear"] .addform .pl{flex:none;padding:0;font-size:12px;color:var(--muted)}:root[data-bg="linear"] .pl{color:var(--muted)}
+:root[data-bg="linear"] .addform{grid-template-columns:minmax(0,1fr) 140px 140px 92px 92px 92px}:root[data-bg="linear"] .addform select:disabled{opacity:.4;cursor:default}:root[data-bg="linear"] .addform .field input,:root[data-bg="linear"] .addform .field select{height:34px}@media (max-width:720px){:root[data-bg="linear"] .addform{grid-template-columns:repeat(6,minmax(0,1fr))}:root[data-bg="linear"] .addform .field{grid-column:span 2}:root[data-bg="linear"] .addform .field:nth-child(2),:root[data-bg="linear"] .addform .field:nth-child(3){grid-column:span 3}:root[data-bg="linear"] .addform .field:first-child{grid-column:1/-1}}:root[data-bg="linear"] .addform .repctl{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;gap:12px 24px}:root[data-bg="linear"] .addform .prow{flex-direction:column;align-items:flex-start;gap:6px}:root[data-bg="linear"] .addform .pl{flex:none;padding:0;font-size:12px;color:var(--muted)}:root[data-bg="linear"] .pl{color:var(--muted)}
 @media (max-width:540px){:root[data-bg="linear"] .rtag .rl{display:none}:root[data-bg="linear"] .rchips{gap:5px}:root[data-bg="linear"] .rchips button{padding:0 8px}:root[data-bg="linear"] .seg2 button{padding:0 10px}:root[data-bg="linear"] .rtag{padding:1px 5px}:root[data-bg="linear"] .repctl{flex-direction:row;flex-wrap:wrap;gap:12px 20px}:root[data-bg="linear"] .prow{flex-direction:column;align-items:flex-start;gap:6px}:root[data-bg="linear"] .prow .pl{flex:none}:root[data-bg="linear"] .prow.hint{flex-basis:100%;margin-top:-4px}:root[data-bg="linear"] .prow.hint .pl{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -739,6 +739,10 @@ function repCtl(r,hab,hint){var kd=hab?'habit':(r?'rep':'task');return '<div cla
 function kindOf(it){return it.habit?'habit':(it.rep?'rep':'task');}
 function kindOpts(k){return [['task','할 일'],['rep','반복'],['habit','습관']].map(function(p){return '<option value="'+p[0]+'"'+(k===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('');}
 function repOpts(r){return REPS2.map(function(p){return '<option value="'+p[0]+'"'+(r===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('');}
+var WDL=['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+function isWk(r){return r==='1w'||r==='2w';}
+function wdOpts(v){return WDL.map(function(n,i){return '<option value="'+i+'"'+(v===i?' selected':'')+'>'+n+'</option>';}).join('');}
+function nextWd(from,v){var d=new Date(from.getFullYear(),from.getMonth(),from.getDate());while(d.getDay()!==v)d.setDate(d.getDate()+1);return d;}
 function repPickDom(btn){var box=btn.closest('.repctl');var act=btn.getAttribute('data-act'),v=btn.getAttribute('data-v');
  function set(sel,val){box.querySelectorAll('[data-act="'+sel+'"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===val));});}
  if(act==='kindpick'){set('kindpick',v);var row=box.querySelector('.rprow');row.hidden=(v==='task');if(v!=='task'&&!box.querySelector('[data-act="reppick"][aria-pressed="true"]'))set('reppick',v==='habit'?'1d':'1w');}
@@ -823,6 +827,7 @@ function itemHTML(it){
       '<label class="prop"><span class="pk">분류</span><select class="pv" id="cat-'+it.id+'" data-act="cat">'+catOptions(it.cat)+'</select></label>'+
       '<label class="prop"><span class="pk">유형</span><select class="pv" id="kind-'+it.id+'" data-act="kind">'+kindOpts(kindOf(it))+'</select></label>'+
       (it.rep?'<label class="prop"><span class="pk">주기</span><select class="pv" id="rep-'+it.id+'" data-act="rep">'+repOpts(it.rep)+'</select></label>':'')+
+      (it.rep&&isWk(it.rep)?'<label class="prop"><span class="pk">요일</span><select class="pv" id="wd-'+it.id+'" data-act="wd">'+wdOpts((it.due?parse(it.due):today()).getDay())+'</select></label>':'')+
       '</div>'+
       '<textarea class="dt-note" id="note-'+it.id+'" data-act="note" rows="2" placeholder="메모 추가…" aria-label="메모">'+esc(it.note)+'</textarea>'+
       '<div class="sublist"><div class="subhead"><span>세부 체크리스트</span>'+(it.subs.length?'<span class="subprog">'+subsDone+'/'+it.subs.length+'</span>':'')+'</div><ul class="subs">'+it.subs.map(function(s,i){
@@ -1019,6 +1024,7 @@ function render(){
       '<label class="field">기한<input type="date" id="new-due"></label>'+
       '<label class="field">유형<select id="new-kind">'+kindOpts('task')+'</select></label>'+
       '<label class="field">주기<select id="new-rep" disabled>'+repOpts('1w')+'</select></label>'+
+      '<label class="field">요일<select id="new-wd" disabled>'+wdOpts(today().getDay())+'</select></label>'+
       '<div class="actions"><button type="button" class="btn ghost" data-act="showadd">취소</button><button type="submit" class="btn">추가하기</button></div></form>';
   }
   var groups=S.cats.map(catHTML).join('');
@@ -1135,7 +1141,7 @@ root.addEventListener('click',function(e){
   if(act==='del'){if(armed===it.id){mutate(function(){S.items=S.items.filter(function(x){return x.id!==it.id;});delete open[it.id];armed=null;});}else{armed=it.id;render();}return;}
 });
 root.addEventListener('change',function(e){
-  if(e.target.id==='new-kind'){var nr=document.getElementById('new-rep');if(nr){nr.disabled=e.target.value==='task';if(e.target.value==='habit')nr.value='1d';else if(e.target.value==='rep')nr.value='1w';}return;}
+  if(e.target.id==='new-kind'||e.target.id==='new-rep'){var nk=document.getElementById('new-kind'),nr=document.getElementById('new-rep'),nw=document.getElementById('new-wd');if(e.target.id==='new-kind'&&nr){if(nk.value==='habit')nr.value='1d';else if(nk.value==='rep')nr.value='1w';}if(nr)nr.disabled=nk.value==='task';if(nw)nw.disabled=nk.value==='task'||!isWk(nr.value);return;}
   var a=e.target.closest('[data-act]');if(!a)return;var act=a.getAttribute('data-act');
   if(act==='newcatsel'){if(a.value==='__new'){var w=document.createElement('span');w.className='catnew';w.innerHTML='<input id="new-catname" placeholder="새 분류 이름" aria-label="새 분류 이름"><button type="button" class="catback" data-act="catback" title="기존 분류에서 고르기">목록</button>';a.replaceWith(w);w.querySelector('input').focus();}return;}
   if(act==='aislename'){commitAisle(a);return;}
@@ -1149,6 +1155,7 @@ root.addEventListener('change',function(e){
   else if(act==='due'){mutate(function(){it.due=a.value||'';});}
   else if(act==='cat'){mutate(function(){it.cat=a.value;});}
   else if(act==='rep'){mutate(function(){it.rep=a.value;if(!it.due)it.due=ymd(today());});}
+  else if(act==='wd'){var wv=+a.value;mutate(function(){it.due=ymd(nextWd(today(),wv));});}
   else if(act==='kind'){var kv=a.value;mutate(function(){if(kv==='task'){delete it.rep;it.habit=false;return;}it.habit=kv==='habit';if(!it.rep)it.rep=it.habit?'1d':'1w';if(!it.due)it.due=ymd(today());});}
   else if(act==='note'){if(a.value!==it.note)mutate(function(){it.note=a.value;});}
 });
@@ -1308,7 +1315,7 @@ root.addEventListener('submit',function(e){
   else cat=document.getElementById('new-cat').value;
   var it={id:uid(),cat:cat,title:t,status:'todo',pin:false,due:document.getElementById('new-due').value||'',note:'',subs:[]};
   var kE=document.getElementById('new-kind'),rE=document.getElementById('new-rep'),kv0=kE?kE.value:'task';
-  if(kv0!=='task'){it.rep=rE?rE.value:'1w';it.habit=kv0==='habit';if(!it.due)it.due=ymd(today());}
+  if(kv0!=='task'){it.rep=rE?rE.value:'1w';it.habit=kv0==='habit';if(!it.due)it.due=ymd(today());var wE=document.getElementById('new-wd');if(isWk(it.rep)&&wE)it.due=ymd(nextWd(parse(it.due),+wE.value));}
   mutate(function(){S.items.push(it);showAdd=false;addDefCat='';filter='open';delete collapsed[cat];keepCollapsed();});
 });
 
