@@ -530,6 +530,23 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] .ea-l{font-size:12px;color:var(--faint);margin-right:2px}
 :root[data-bg="linear"] .eachip{border:0;background:rgba(255,255,255,.05);color:var(--muted);font:inherit;font-size:12.5px;line-height:1.3;padding:4px 10px;border-radius:999px;cursor:pointer}
 :root[data-bg="linear"] .eachip:hover{background:rgba(255,255,255,.1);color:var(--ink)}
+
+/* agenda item delete: hover x + swipe (same as grocery) */
+:root[data-bg="linear"] li.item:not(.shop){position:relative}
+:root[data-bg="linear"] li.item:not(.shop).drag,:root[data-bg="linear"] li.item:not(.shop).open{overflow:hidden}
+:root[data-bg="linear"] li.item:not(.shop) .row{position:relative;z-index:1;touch-action:pan-y;transition:transform .18s ease;user-select:none;-webkit-user-select:none}
+:root[data-bg="linear"] li.item .swdel{top:24px}
+:root[data-bg="linear"] li.item:not(.shop).drag .swdel,:root[data-bg="linear"] li.item:not(.shop).open .swdel{opacity:1}
+:root[data-bg="linear"] li.item:not(.shop).arm .swdel{background:#d04a52}
+:root[data-bg="linear"] li.item:not(.shop).drag .row,:root[data-bg="linear"] li.item:not(.shop).open .row{background:#17181b}
+:root[data-bg="linear"] li.item:not(.shop) .row .x{opacity:0;flex:none;width:28px;height:28px;display:grid;place-items:center;padding:0;border-radius:6px}
+:root[data-bg="linear"] li.item:not(.shop):hover .row .x,:root[data-bg="linear"] li.item:not(.shop) .row .x:focus-visible{opacity:1}
+:root[data-bg="linear"] li.item:not(.shop).open .row .x,:root[data-bg="linear"] li.item:not(.shop).drag .row .x{opacity:0!important}
+@media (hover:none){:root[data-bg="linear"] li.item:not(.shop) .row .x{opacity:.5}}
+#undoToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translate(-50%,16px);opacity:0;pointer-events:none;z-index:100;display:flex;gap:14px;align-items:center;background:#202126;color:#f7f8f8;font-size:13.5px;padding:10px 12px 10px 16px;border-radius:10px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 12px 32px rgba(0,0,0,.5);transition:opacity .18s,transform .18s;max-width:calc(100vw - 32px)}
+#undoToast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#undoToast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#undoToast button{flex:none;border:0;background:rgba(113,128,240,.18);color:#a9b4ff;font:inherit;font-weight:600;font-size:13px;padding:5px 10px;border-radius:6px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -645,7 +662,7 @@ function itemHTML(it){
     '<div class="stw lead"><button type="button" class="sicon s-'+it.status+'" data-act="stmenu" data-id="'+it.id+'" data-k="l:'+it.id+'" aria-haspopup="menu" aria-expanded="'+(menuOpen==='l:'+it.id)+'" aria-label="상태: '+SL[it.status]+'" title="'+SL[it.status]+'">'+SICON[it.status]+'</button>'+(menuOpen==='l:'+it.id?menuHTML(it):'')+'</div>'+
     (editingTitle===it.id?'<div class="ttl"><input class="dt-title" id="title-'+it.id+'" data-act="title" value="'+esc(it.title)+'" aria-label="제목"></div>':'<button class="ttl" data-act="expand" aria-expanded="'+(open[it.id]?'true':'false')+'"><span class="t">'+esc(it.title)+'</span>'+(meta.length?'<span class="m">'+esc(meta.join(' · '))+'</span>':'')+'</button>')+
     ddTag(it)+
-    '<button class="pin" data-act="pin" aria-pressed="'+(it.pin?'true':'false')+'" aria-label="우선순위 고정" title="우선순위 고정">'+IC.star+'</button></div>';
+    '<button class="pin" data-act="pin" aria-pressed="'+(it.pin?'true':'false')+'" aria-label="우선순위 고정" title="우선순위 고정">'+IC.star+'</button><button class="x" data-act="itemdel" aria-label="'+esc(it.title)+' 삭제" title="삭제">×</button></div><button class="swdel" data-act="itemdel" tabindex="-1" aria-label="'+esc(it.title)+' 삭제"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg></button>';
   if(open[it.id]){
     h+='<div class="detail">'+
       '<div class="props"><label class="prop"><span class="pk">기한</span><input class="pv" type="date" id="due-'+it.id+'" data-act="due" value="'+esc(it.due)+'"></label>'+
@@ -781,6 +798,12 @@ function commitInline(catId){
   mutate(function(){S.items.push({id:uid(),cat:catId,title:v,status:'todo',pin:false,due:due,note:'',subs:[]});if(filter!=='open'&&filter!=='all'&&filter!=='todo')filter='open';});
   var n=document.getElementById('inl-'+catId);if(n){n.value='';n.focus({preventScroll:true});}
 }
+var undoT=null;
+function deleteItem(id){var idx=-1;S.items.forEach(function(x,i){if(x.id===id)idx=i;});if(idx<0)return;var gone=S.items[idx];mutate(function(){S.items.splice(idx,1);delete open[id];if(menuOpen&&menuOpen.split(':')[1]===id)menuOpen=null;});showUndo(gone,idx);}
+function showUndo(gone,idx){var t=document.getElementById('undoToast');if(!t){t=document.createElement('div');t.id='undoToast';t.setAttribute('role','status');document.body.appendChild(t);}
+ t.innerHTML='<span>"'+esc(gone.title.length>22?gone.title.slice(0,22)+'…':gone.title)+'" 삭제됨</span><button type="button">되돌리기</button>';t.className='show';
+ t.querySelector('button').onclick=function(){t.className='';clearTimeout(undoT);mutate(function(){S.items.splice(Math.min(idx,S.items.length),0,gone);});};
+ clearTimeout(undoT);undoT=setTimeout(function(){t.className='';},5000);}
 function addSub(it){var inp=document.getElementById('subadd-'+it.id);var v=inp&&inp.value.trim();if(!v)return;mutate(function(){it.subs.push({t:v,d:false});});var n=document.getElementById('subadd-'+it.id);if(n)n.focus();}
 
 var root=document.getElementById('root');
@@ -839,6 +862,7 @@ root.addEventListener('click',function(e){
   if(act==='expand'){open[it.id]=!open[it.id];if(!open[it.id])delete open[it.id];armed=null;keepOpen();render();return;}
   if(act==='toggle'){mutate(function(){if(it.status==='done'){it.status=it.prev||'todo';}else{it.prev=it.status;it.status='done';}});return;}
   if(act==='pin'){mutate(function(){it.pin=!it.pin;});return;}
+  if(act==='itemdel'){deleteItem(it.id);return;}
   if(act==='subtoggle'){var k=+a.getAttribute('data-i');mutate(function(){it.subs[k].d=!it.subs[k].d;});return;}
   if(act==='subedit'){editingSub=it.id+':'+a.getAttribute('data-i');render();var se=document.getElementById('subedit-'+it.id+'-'+a.getAttribute('data-i'));if(se){se.focus();var L=se.value.length;se.setSelectionRange(L,L);}return;}
   if(act==='subdel'){var i=+a.getAttribute('data-i');mutate(function(){it.subs.splice(i,1);});return;}
@@ -879,13 +903,14 @@ root.addEventListener('keydown',function(e){
   else if(act==='newcatinput'){if(e.key==='Enter'){e.preventDefault();commitNewCat();}else if(e.key==='Escape'){addingCat=false;render();}}
 });
 (function(){var sw=null,OPEN=68;
-function closeAll(except){Array.prototype.forEach.call(root.querySelectorAll('li.shop.open'),function(li){if(li===except)return;li.classList.remove('open');var r=li.querySelector('.row');if(r)r.style.transform='';setTimeout(function(){li.classList.remove('drag');},200);});}
-root.addEventListener('pointerdown',function(e){var li=e.target.closest('li.shop');if(e.target.closest('.swdel'))return;closeAll(li);if(!li||e.button>0)return;if(e.target.closest('button,input,select,a'))return;var base=li.classList.contains('open')?-OPEN:0;sw={li:li,row:li.querySelector('.row'),x:e.clientX,y:e.clientY,base:base,dx:base,on:false,id:e.pointerId};});
+function closeAll(except){Array.prototype.forEach.call(root.querySelectorAll('li.item.open'),function(li){if(li===except)return;li.classList.remove('open');var r=li.querySelector('.row');if(r)r.style.transform='';setTimeout(function(){li.classList.remove('drag');},200);});}
+root.addEventListener('pointerdown',function(e){var li=e.target.closest('li.item');if(e.target.closest('.swdel'))return;closeAll(li);if(!li||e.button>0||!e.target.closest('.row'))return;if(e.target.closest('input,select,a,textarea,.menu')||(e.target.closest('button')&&!e.target.closest('.ttl')))return;var base=li.classList.contains('open')?-OPEN:0;sw={li:li,row:li.querySelector('.row'),x:e.clientX,y:e.clientY,base:base,dx:base,on:false,id:e.pointerId};});
 root.addEventListener('pointermove',function(e){if(!sw||e.pointerId!==sw.id)return;var dx=e.clientX-sw.x,dy=e.clientY-sw.y;if(!sw.on){if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){sw.on=true;sw.li.classList.add('drag');sw.row.style.transition='none';try{sw.row.setPointerCapture(e.pointerId);}catch(_){}}else if(Math.abs(dy)>8){sw=null;return;}else return;}sw.dx=Math.min(0,sw.base+dx);sw.row.style.transform='translateX('+sw.dx+'px)';sw.li.classList.toggle('arm',sw.dx<-Math.min(sw.li.offsetWidth*0.5,200));e.preventDefault();});
-function swEnd(){if(!sw)return;var s=sw;sw=null;if(!s.on){if(s.base){s.li.classList.remove('open');s.row.style.transform='';}return;}s.row.style.transition='';s.li.classList.remove('arm');var w=s.li.offsetWidth;
- if(s.dx<-Math.min(w*0.5,200)){s.row.style.transform='translateX(-'+w+'px)';var sid=s.li.getAttribute('data-sid');setTimeout(function(){mutate(function(){S.shop=S.shop.filter(function(x){return x.id!==sid;});});},180);}
+function swEnd(){if(!sw)return;var s=sw;sw=null;if(s.on){window.__swSuppress=true;setTimeout(function(){window.__swSuppress=false;},50);}if(!s.on){if(s.base){s.li.classList.remove('open');s.row.style.transform='';}return;}s.row.style.transition='';s.li.classList.remove('arm');var w=s.li.offsetWidth;
+ if(s.dx<-Math.min(w*0.5,200)){s.row.style.transform='translateX(-'+w+'px)';var sid=s.li.getAttribute('data-sid'),iid=s.li.getAttribute('data-id');setTimeout(function(){if(sid)mutate(function(){S.shop=S.shop.filter(function(x){return x.id!==sid;});});else if(iid)deleteItem(iid);},180);}
  else if(s.dx<-OPEN/2){s.row.style.transform='translateX(-'+OPEN+'px)';s.li.classList.add('open');}
  else{s.row.style.transform='';s.li.classList.remove('open');setTimeout(function(){s.li.classList.remove('drag');},200);}}
+root.addEventListener('click',function(e){if(window.__swSuppress){e.stopPropagation();e.preventDefault();window.__swSuppress=false;}},true);
 root.addEventListener('pointerup',swEnd);root.addEventListener('pointercancel',swEnd);})();
 root.addEventListener('change',function(e){if(e.target.id==='shop-aisle'&&e.target.value==='__new'){var w=document.createElement('span');w.className='catnew';w.innerHTML='<input class="inp" id="shop-newaisle" placeholder="새 코너 이름" aria-label="새 코너 이름" autocomplete="off"><button type="button" class="catback" data-act="aisleback" title="기존 코너에서 고르기">목록</button>';e.target.replaceWith(w);w.querySelector('input').focus();}});
 root.addEventListener('submit',function(e){
