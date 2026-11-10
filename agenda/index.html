@@ -412,7 +412,8 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] .catback{border-radius:6px;font-size:12.5px}
 @media (max-width:540px){:root[data-bg="linear"] .wrap{padding:20px 14px 56px}:root[data-bg="linear"] .detail{padding:12px 14px 14px}:root[data-bg="linear"] .row{padding:0 10px}}
 /* view tabs + shopping */
-:root[data-bg="linear"] .vtabs{display:flex;gap:2px;box-shadow:inset 0 -1px 0 var(--line);margin-top:-4px}
+:root[data-bg="linear"] .toolbar{top:calc(37px + env(safe-area-inset-top,0px))}:root[data-bg="linear"] .mlist{top:calc(49px + env(safe-area-inset-top,0px));max-height:calc(100vh - 65px)}@media (max-width:540px){:root[data-bg="linear"] .toolbar{position:static}}
+:root[data-bg="linear"] .vtabs{display:flex;gap:2px;box-shadow:inset 0 -1px 0 var(--line),0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax -3px);margin-top:-4px;position:sticky;top:0;z-index:40;background:var(--bg);padding-top:env(safe-area-inset-top,0px)}
 :root[data-bg="linear"] .vtab{border:0;background:none;padding:8px 12px;font-size:14px;font-weight:500;color:var(--muted);box-shadow:inset 0 -2px 0 transparent;border-radius:0}
 :root[data-bg="linear"] .vtab:hover{color:var(--ink)}
 :root[data-bg="linear"] .vtab[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
@@ -1117,7 +1118,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&menuOpen){menuOpen=null;render();}
 });
 root.addEventListener('click',function(e){
-  var vt=e.target.closest('[data-view]');if(vt){view=vt.getAttribute('data-view');try{sessionStorage.setItem(LSKEY+'-view',view);}catch(e3){}render();return;}
+  var vt=e.target.closest('[data-view]');if(vt){var hb=document.querySelector('.hero'),top0=hb?hb.getBoundingClientRect().bottom+window.scrollY:0;view=vt.getAttribute('data-view');try{sessionStorage.setItem(LSKEY+'-view',view);}catch(e3){}render();if(window.scrollY>top0)window.scrollTo(0,top0);return;}
   var cb=e.target.closest('[data-cal]');if(cb){var ca=cb.getAttribute('data-cal');
     if(ca==='day'){calSel=cb.getAttribute('data-date');calMonth=calSel.slice(0,7);render();return;}
     if(ca==='prev'||ca==='next'){var yy=+calMonth.slice(0,4),mm=+calMonth.slice(5,7)-1+(ca==='prev'?-1:1);var dd=new Date(yy,mm,1);calMonth=dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0');render();return;}
