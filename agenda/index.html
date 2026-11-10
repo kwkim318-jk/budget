@@ -82,6 +82,7 @@ h1{margin:0;font-size:44px;line-height:1.05;font-weight:600;letter-spacing:-.045
 
 .panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:720px){.panels{grid-template-columns:1fr}}
+.panels.one{grid-template-columns:1fr}
 .panel{box-shadow:var(--sh-2);border-radius:22px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
 .panel h2{margin:0;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:8px}
 .panel h2 .ic{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--acc-bg);color:var(--accent)}
@@ -937,8 +938,7 @@ function render(){
     '<div class="tile glass"><span class="k">7일 안에 기한</span><span class="v'+(soon?' hot':'')+'">'+soon+'</span></div>'+
     '<div class="tile glass"><span class="k">진행 중</span><span class="v">'+(c.doing||0)+'</span></div>'+
     '<div class="tile glass"><span class="k">완료율</span><span class="v">'+pct+'<small>%</small></span><div class="bar"><i style="width:'+pct+'%"></i></div></div></div>';
-  h+='<div class="panels"><div class="panel due glass"><h2><span class="ic">'+IC.cal+'</span>다가오는 기한</h2>'+(dues.length?'<ul class="plist">'+dues.map(function(it){return '<li>'+ddTag(it)+'<button class="go" data-jump="'+it.id+'">'+esc(it.title)+'</button></li>';}).join('')+'</ul>':'<div class="empty">기한이 정해진 항목이 없어요.</div>')+'</div>'+
-    '<div class="panel pri glass"><h2><span class="ic">'+IC.flag+'</span>Starred</h2>'+(pins.length?'<ul class="plist">'+pins.map(function(it,i){return '<li><span class="n">'+(i+1)+'</span><button class="go" data-jump="'+it.id+'">'+esc(it.title)+'</button>'+stBtn(it,'p')+'</li>';}).join('')+'</ul>':'<div class="empty">★를 눌러 우선순위 항목을 고정하세요.</div>')+'</div></div>';
+  h+='<div class="panels one"><div class="panel due glass"><h2><span class="ic">'+IC.cal+'</span>다가오는 기한</h2>'+(dues.length?'<ul class="plist">'+dues.map(function(it){return '<li>'+ddTag(it)+'<button class="go" data-jump="'+it.id+'">'+esc(it.title)+'</button></li>';}).join('')+'</ul>':'<div class="empty">기한이 정해진 항목이 없어요.</div>')+'</div></div>';
   var F=[['open','남은 일',c.open],['all','전체',c.all]].concat(STATUS.map(function(s){return [s[0],s[1],c[s[0]]];}));
   h+='<div class="toolbar"><div class="seg" role="group" aria-label="상태 필터">'+F.map(function(f){return '<button class="chip" data-filter="'+f[0]+'" aria-pressed="'+(filter===f[0])+'">'+f[1]+'<span class="c">'+f[2]+'</span></button>';}).join('')+'</div>'+
     '<label class="search">'+IC.search+'<input id="q" type="search" placeholder="검색" value="'+esc(q)+'" aria-label="검색"></label><button class="btn" data-act="showadd">'+(showAdd?'닫기':IC.plus+'추가')+'</button></div>';
