@@ -665,7 +665,7 @@ function catHTML(cat){
   var list=all.filter(match);
   var showEmpty=!q&&(filter==='open'||filter==='all');
   if(!list.length&&!showEmpty)return '';
-  var order={todo:0,check:1,doing:2,wait:3,done:4};
+  var order={doing:0,check:1,todo:2,wait:3,done:4};
   list.sort(function(a,b){return (b.pin-a.pin)||(order[a.status]-order[b.status])||((a.due||'9')<(b.due||'9')?-1:((a.due||'9')>(b.due||'9')?1:0));});
   var isCol=!!collapsed[cat.id];
   var h='<section class="cat" data-cat="'+esc(cat.id)+'"><div class="cath">';
