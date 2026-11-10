@@ -832,7 +832,7 @@ function renderCal(){
   h+='</div>';
   var sd=parse(calSel),hs=holidays(sd.getFullYear())[calSel],order={doing:0,check:1,todo:2,wait:3,done:4},oo=function(x){return typeof x.o==='number'?x.o:1e9;};
   var list=(by[calSel]||[]).slice().sort(function(a,b){return (order[a.status]-order[b.status])||(b.pin-a.pin)||(oo(a)-oo(b));});
-  h+='<div class="calday-h"><h3>'+(sd.getMonth()+1)+'월 '+sd.getDate()+'일 ('+WD[sd.getDay()]+')</h3>'+(hs?'<span class="holtag'+(hs.o?' opt':'')+'">'+esc(hs.n)+(hs.o?' · Optional':' · Statutory')+'</span>':'')+'<span class="cnt">'+(list.length?'할 일 '+list.length+'개':'')+'</span></div>';
+  h+='<div class="calday-h"><h3>'+(sd.getMonth()+1)+'월 '+sd.getDate()+'일 ('+WD[sd.getDay()]+')</h3>'+(hs?'<span class="holtag'+(hs.o?' opt':'')+'">'+esc(hs.n)+(hs.o?' · Alberta optional holiday':' · Alberta stat holiday')+'</span>':'')+'<span class="cnt">'+(list.length?'할 일 '+list.length+'개':'')+'</span></div>';
   h+='<div class="groups calday"><section class="cat">';
   if(list.length)h+='<ul class="items">'+list.map(itemHTML).join('')+'</ul>';else h+='<div class="catempty">이 날짜에 기한인 할 일이 없어요.</div>';
   h+='<div class="inl caladd"><input class="inp" id="cal-new" placeholder="'+(sd.getMonth()+1)+'/'+sd.getDate()+' 기한으로 할 일 추가, Enter" aria-label="이 날짜에 할 일 추가" autocomplete="off"><select class="inp" id="cal-cat" aria-label="분류">'+catOptions(lastCalCat||(S.cats[0]&&S.cats[0].id))+'</select><button class="btn sm" data-cal="add">추가</button></div>';
