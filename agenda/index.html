@@ -516,6 +516,15 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 :root[data-bg="linear"] .subs li:hover .ed,:root[data-bg="linear"] .subs .ed:focus-visible{opacity:1}
 :root[data-bg="linear"] .subs .ed:hover{background:rgba(255,255,255,.07);color:var(--ink)}
 @media (hover:none){:root[data-bg="linear"] .subs .ed{opacity:.6}}
+
+/* grocery aisles */
+:root[data-bg="linear"] .shopinl{display:flex;gap:8px;align-items:center}
+:root[data-bg="linear"] .shopinl .inp{flex:1 1 auto;min-width:0}
+:root[data-bg="linear"] .shopinl .q{flex:0 0 80px}
+:root[data-bg="linear"] .shopadd .catnew{flex:0 0 190px;display:flex;gap:6px;min-width:0}
+:root[data-bg="linear"] .shopadd .catnew .inp{flex:1;min-width:0}
+:root[data-bg="linear"] .catt .inp#aislename{font-size:14px;padding:4px 8px;width:200px;max-width:55vw}
+@media (max-width:540px){:root[data-bg="linear"] .shopinl{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}:root[data-bg="linear"] .shopinl .inp:first-child{grid-column:1/-1}:root[data-bg="linear"] .shopinl .q{width:100%}:root[data-bg="linear"] .shopadd .catnew{width:100%}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -675,7 +684,14 @@ function catHTML(cat){
 }
 var view='agenda';try{view=sessionStorage.getItem(LSKEY+'-view')||'agenda';}catch(e){}
 var AISLES=['채소·과일','정육·수산','유제품·계란','냉동·가공','생활용품','기타'];
-var lastAisle=AISLES[0];
+var lastAisle=AISLES[0],shopInline=null,shopEditAisle=null,shopAddingAisle=false,shopArmed=null;
+function ensureAisles(){if(!S.aisles)S.aisles=AISLES.slice();}
+function shopGroups(){ensureAisles();var g=S.aisles.slice();S.shop.forEach(function(x){if(g.indexOf(x.aisle)<0)g.push(x.aisle);});return g;}
+function aisleSelectHTML(){ensureAisles();if(S.aisles.indexOf(lastAisle)<0)lastAisle=S.aisles[0]||'기타';return '<select class="inp a" id="shop-aisle" aria-label="코너">'+S.aisles.map(function(a){return '<option'+(a===lastAisle?' selected':'')+'>'+esc(a)+'</option>';}).join('')+'<option value="__new">+ 새 코너 추가…</option></select>';}
+function backToAisleSelect(w){if(!w)return;var tmp=document.createElement('div');tmp.innerHTML=aisleSelectHTML();var sel=tmp.firstChild;w.replaceWith(sel);sel.focus();}
+function commitShopInline(){var n=document.getElementById('sinl-name');var v=n&&n.value.trim();if(!v){if(n)n.focus();return;}var qe=document.getElementById('sinl-qty');var q=qe?qe.value.trim():'';var a=shopInline;mutate(function(){S.shop.push({id:uid('s'),name:v,qty:q,aisle:a,done:false});});var n2=document.getElementById('sinl-name');if(n2){n2.value='';n2.focus({preventScroll:true});}}
+function commitAisle(inp){var old=shopEditAisle;shopEditAisle=null;var v=inp.value.trim();if(!old||!v||v===old){render();return;}mutate(function(){ensureAisles();var i=S.aisles.indexOf(old);if(S.aisles.indexOf(v)>=0){if(i>=0)S.aisles.splice(i,1);}else if(i>=0)S.aisles[i]=v;else S.aisles.push(v);S.shop.forEach(function(x){if(x.aisle===old)x.aisle=v;});if(lastAisle===old)lastAisle=v;if(shopInline===old)shopInline=v;});}
+function commitNewAisle(){var i=document.getElementById('aislenew-input');var v=i&&i.value.trim();if(!v){shopAddingAisle=false;render();return;}mutate(function(){ensureAisles();if(S.aisles.indexOf(v)<0)S.aisles.push(v);shopAddingAisle=false;});}
 if(!S.shop)S.shop=[{id:'s1',name:'계란',qty:'1판',aisle:'유제품·계란',done:false},{id:'s2',name:'우유',qty:'2L',aisle:'유제품·계란',done:false},{id:'s3',name:'양파',qty:'',aisle:'채소·과일',done:false},{id:'s4',name:'휴지',qty:'',aisle:'생활용품',done:false}];
 function viewTabs(){var n=S.shop.filter(function(x){return !x.done;}).length;return '<nav class="vtabs" role="tablist" aria-label="화면">'+[['agenda','Agenda',''],['shop','장보기',n]].map(function(v){return '<button class="vtab" role="tab" data-view="'+v[0]+'" aria-selected="'+(view===v[0])+'">'+v[1]+(v[2]!==''?'<span class="c">'+v[2]+'</span>':'')+'</button>';}).join('')+'</nav>';}
 function shopRow(x){var st=x.done?'done':'todo';return '<li class="item shop s-'+st+'" data-sid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="shoptoggle" aria-label="'+(x.done?'담기 취소':'담았음으로 표시')+'">'+SICON[st]+'</button><span class="ttl"><span class="t">'+esc(x.name)+'</span>'+(x.qty?'<span class="m">'+esc(x.qty)+'</span>':'')+'</span><button class="x" data-act="shopdel" aria-label="'+esc(x.name)+' 삭제">×</button></div><button class="swdel" data-act="shopdel" tabindex="-1" aria-label="'+esc(x.name)+' 삭제"><svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6\"/></svg></button></li>';}
@@ -683,10 +699,18 @@ function renderShop(){
   var t=today();
   var left=S.shop.filter(function(x){return !x.done;}),got=S.shop.filter(function(x){return x.done;});
   var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span></div><h1>장보기</h1></header>'+viewTabs();
-  h+='<form class="shopadd" id="shopadd"><input class="inp" id="shop-name" placeholder="살 것 입력 후 Enter" aria-label="살 것" autocomplete="off"><input class="inp q" id="shop-qty" placeholder="수량" aria-label="수량" autocomplete="off"><select class="inp a" id="shop-aisle" aria-label="코너">'+AISLES.map(function(a){return '<option'+(a===lastAisle?' selected':'')+'>'+esc(a)+'</option>';}).join('')+'</select><button class="btn" type="submit">추가</button></form>';
+  h+='<form class="shopadd" id="shopadd"><input class="inp" id="shop-name" placeholder="살 것 입력 후 Enter" aria-label="살 것" autocomplete="off"><input class="inp q" id="shop-qty" placeholder="수량" aria-label="수량" autocomplete="off">'+aisleSelectHTML()+'<button class="btn" type="submit">추가</button></form>';
   h+='<div class="groups">';
-  AISLES.forEach(function(a){var l=left.filter(function(x){return x.aisle===a;});if(!l.length)return;h+='<section class="cat"><div class="cath"><div class="catt"><span class="nm">'+esc(a)+'</span><span class="cnt">'+l.length+'</span></div></div><ul class="items">'+l.map(shopRow).join('')+'</ul></section>';});
-  if(!left.length)h+='<div class="catempty">살 것이 없어요. 위에서 추가하세요.</div>';
+  shopGroups().forEach(function(a,ai){var l=left.filter(function(x){return x.aisle===a;});var all=S.shop.filter(function(x){return x.aisle===a;});var known=S.aisles.indexOf(a)>=0;
+    h+='<section class="cat shopsec" data-ai="'+ai+'"><div class="cath">';
+    if(shopEditAisle===a)h+='<div class="catt"><input class="inp" id="aislename" data-act="aislename" value="'+esc(a)+'" aria-label="코너 이름"></div>';
+    else h+='<div class="catt"><span class="nm">'+esc(a)+'</span><span class="cnt">'+l.length+'</span></div>';
+    h+='<div class="cata"><button class="ib" data-act="aisleadd" title="이 코너에 추가" aria-label="'+esc(a)+'에 추가">'+IC.plus+'</button>'+(known?'<button class="ib" data-act="aisleren" title="이름 변경" aria-label="'+esc(a)+' 이름 변경">'+IC.pen+'</button>':'')+(known&&!all.length?'<button class="ib danger'+(shopArmed===a?' armed':'')+'" data-act="aisledel" title="'+(shopArmed===a?'한 번 더 누르면 삭제':'코너 삭제')+'" aria-label="'+esc(a)+' 삭제">'+IC.trash+'</button>':'')+'</div></div>';
+    if(l.length)h+='<ul class="items">'+l.map(shopRow).join('')+'</ul>';
+    if(shopInline===a)h+='<div class="inl shopinl"><input class="inp" id="sinl-name" data-act="sinl" placeholder="'+esc(a)+'에 추가할 것, Enter" aria-label="'+esc(a)+'에 추가할 것" autocomplete="off"><input class="inp q" id="sinl-qty" data-act="sinl" placeholder="수량" aria-label="수량" autocomplete="off"><button class="btn sm" data-act="sinlok">추가</button><button class="btn ghost sm" data-act="sinlclose">닫기</button></div>';
+    h+='</section>';});
+  if(shopAddingAisle)h+='<div class="newcat"><input class="inp" id="aislenew-input" data-act="aislenewinput" placeholder="새 코너 이름 (예: 코스트코)" aria-label="새 코너 이름"><button class="btn sm" data-act="aislenewok">추가</button><button class="btn ghost sm" data-act="aislenewcancel">취소</button></div>';
+  else h+='<button class="addcat" data-act="aislenew">'+IC.plus+'코너 추가</button>';
   if(got.length)h+='<section class="cat got"><div class="cath"><div class="catt"><span class="nm">담은 것</span><span class="cnt">'+got.length+'</span></div><div class="cata shopcata"><button class="dlink" data-act="shopclear">담은 것 모두 지우기</button></div></div><ul class="items">'+got.map(shopRow).join('')+'</ul></section>';
   h+='</div></div>';
   var ae=document.activeElement,aid=ae&&ae.id;
@@ -767,6 +791,19 @@ root.addEventListener('click',function(e){
     if(sact==='shoptoggle'){mutate(function(){sx.done=!sx.done;});return;}
     if(sact==='shopdel'){mutate(function(){S.shop=S.shop.filter(function(x){return x.id!==sid;});});return;}
   }
+  var aa=e.target.closest('[data-act^="aisle"],[data-act^="sinl"]');
+  if(aa){var aact=aa.getAttribute('data-act');var asec=aa.closest('section.shopsec');var an=asec?shopGroups()[+asec.getAttribute('data-ai')]:null;
+    if(aact==='aisleadd'){shopInline=an;shopArmed=null;render();var si=document.getElementById('sinl-name');if(si){si.focus({preventScroll:true});si.scrollIntoView({block:'nearest'});}return;}
+    if(aact==='aisleren'){shopEditAisle=an;shopArmed=null;render();var ain=document.getElementById('aislename');if(ain){ain.focus();ain.select();}return;}
+    if(aact==='aisledel'){if(shopArmed===an){mutate(function(){S.aisles=S.aisles.filter(function(x){return x!==an;});shopArmed=null;if(shopInline===an)shopInline=null;ensureAisles();});}else{shopArmed=an;render();}return;}
+    if(aact==='sinlok'){commitShopInline();return;}
+    if(aact==='sinlclose'){shopInline=null;render();return;}
+    if(aact==='aislenew'){shopAddingAisle=true;render();var nn=document.getElementById('aislenew-input');if(nn)nn.focus();return;}
+    if(aact==='aislenewok'){commitNewAisle();return;}
+    if(aact==='aislenewcancel'){shopAddingAisle=false;render();return;}
+    if(aact==='aisleback'){e.preventDefault();backToAisleSelect(aa.closest('.catnew'));return;}
+    return;
+  }
   var bgb=e.target.closest('.sw');if(bgb){bgSel=bgb.getAttribute('data-bg');try{localStorage.setItem(LSKEY+'-bg',bgSel);}catch(e2){}applyBg();render();return;}
   var f=e.target.closest('[data-filter]');if(f){filter=f.getAttribute('data-filter');render();return;}
   var j=e.target.closest('[data-jump]');
@@ -802,6 +839,8 @@ root.addEventListener('click',function(e){
 root.addEventListener('change',function(e){
   var a=e.target.closest('[data-act]');if(!a)return;var act=a.getAttribute('data-act');
   if(act==='newcatsel'){if(a.value==='__new'){var w=document.createElement('span');w.className='catnew';w.innerHTML='<input id="new-catname" placeholder="새 분류 이름" aria-label="새 분류 이름"><button type="button" class="catback" data-act="catback" title="기존 분류에서 고르기">목록</button>';a.replaceWith(w);w.querySelector('input').focus();}return;}
+  if(act==='aislename'){commitAisle(a);return;}
+  if(act==='sinl'||act==='aislenewinput')return;
   if(act==='catname'){commitCatName(a);return;}
   if(act==='newcatinput')return;
   var li=a.closest('.item');var it=find(li&&li.getAttribute('data-id'));if(!it)return;
@@ -821,6 +860,10 @@ root.addEventListener('keydown',function(e){
   if(e.target.id==='new-catname'&&e.key==='Escape'){e.preventDefault();backToCatSelect(e.target.closest('.catnew'));return;}
   if(e.key==='Enter'&&act==='subadd'){e.preventDefault();var li=e.target.closest('.item');var it=li&&find(li.getAttribute('data-id'));if(it)addSub(it);}
   else if(act==='catname'){if(e.key==='Enter'){e.preventDefault();commitCatName(e.target);}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;editingCat=null;render();}}
+  else if(act==='sinl'){if(e.key==='Enter'){e.preventDefault();commitShopInline();}else if(e.key==='Escape'){shopInline=null;render();}}
+  else if(act==='aislename'){if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;shopEditAisle=null;render();}}
+  else if(act==='aislenewinput'){if(e.key==='Enter'){e.preventDefault();commitNewAisle();}else if(e.key==='Escape'){shopAddingAisle=false;render();}}
+  else if(e.target.id==='shop-newaisle'&&e.key==='Escape'){e.preventDefault();backToAisleSelect(e.target.closest('.catnew'));}
   else if(act==='subtext'){if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;editingSub=null;render();}}
   else if(act==='title'){if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){e.target.value=e.target.defaultValue;editingTitle=null;render();}}
   else if(act==='inltitle'){var sc=e.target.closest('section.cat');if(e.key==='Enter'){e.preventDefault();if(sc)commitInline(sc.getAttribute('data-cat'));}else if(e.key==='Escape'){inlineCat=null;render();}}
@@ -835,8 +878,9 @@ function swEnd(){if(!sw)return;var s=sw;sw=null;if(!s.on){if(s.base){s.li.classL
  else if(s.dx<-OPEN/2){s.row.style.transform='translateX(-'+OPEN+'px)';s.li.classList.add('open');}
  else{s.row.style.transform='';s.li.classList.remove('open');setTimeout(function(){s.li.classList.remove('drag');},200);}}
 root.addEventListener('pointerup',swEnd);root.addEventListener('pointercancel',swEnd);})();
+root.addEventListener('change',function(e){if(e.target.id==='shop-aisle'&&e.target.value==='__new'){var w=document.createElement('span');w.className='catnew';w.innerHTML='<input class="inp" id="shop-newaisle" placeholder="새 코너 이름" aria-label="새 코너 이름" autocomplete="off"><button type="button" class="catback" data-act="aisleback" title="기존 코너에서 고르기">목록</button>';e.target.replaceWith(w);w.querySelector('input').focus();}});
 root.addEventListener('submit',function(e){
-  if(e.target.id==='shopadd'){e.preventDefault();var nm=document.getElementById('shop-name').value.trim();if(!nm){document.getElementById('shop-name').focus();return;}var qt=document.getElementById('shop-qty').value.trim();lastAisle=document.getElementById('shop-aisle').value;mutate(function(){S.shop.push({id:uid('s'),name:nm,qty:qt,aisle:lastAisle,done:false});});var ni=document.getElementById('shop-name');if(ni)ni.focus();return;}
+  if(e.target.id==='shopadd'){e.preventDefault();var nm=document.getElementById('shop-name').value.trim();if(!nm){document.getElementById('shop-name').focus();return;}var qt=document.getElementById('shop-qty').value.trim();var naEl=document.getElementById('shop-newaisle');if(naEl){var nav=naEl.value.trim();if(!nav){naEl.focus();return;}lastAisle=nav;}else lastAisle=document.getElementById('shop-aisle').value;mutate(function(){ensureAisles();if(S.aisles.indexOf(lastAisle)<0)S.aisles.push(lastAisle);S.shop.push({id:uid('s'),name:nm,qty:qt,aisle:lastAisle,done:false});});var ni=document.getElementById('shop-name');if(ni)ni.focus();return;}
   e.preventDefault();
   var t=document.getElementById('new-title').value.trim();if(!t)return;
   var cat,cnEl=document.getElementById('new-catname');
