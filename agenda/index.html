@@ -601,9 +601,8 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .vtab .vstar svg{width:16px;height:16px}
 
 /* calendar */
-:root[data-bg="linear"] .calnav{display:flex;align-items:center;gap:4px}
-:root[data-bg="linear"] .calm{margin:0 6px;font-size:17px;font-weight:600;letter-spacing:-.01em;min-width:104px;text-align:center}
-:root[data-bg="linear"] .calnav .btn{margin-left:auto}
+:root[data-bg="linear"] .calnav{display:flex;align-items:center;gap:10px;flex-wrap:wrap}:root[data-bg="linear"] .calctl{display:flex;align-items:center;gap:2px;margin-left:auto}:root[data-bg="linear"] .calctl .btn{margin-right:6px}
+:root[data-bg="linear"] .calm{margin:0 4px 0 2px;font-size:17px;font-weight:600;letter-spacing:-.01em}
 :root[data-bg="linear"] .calnav .ib svg{width:18px;height:18px}
 :root[data-bg="linear"] .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-radius:10px;box-shadow:inset 0 0 0 1px var(--line);background:var(--glass);overflow:hidden;touch-action:pan-y}
 :root[data-bg="linear"] .calwd{padding:8px 0;text-align:center;font-size:12px;color:var(--faint);box-shadow:inset 0 -1px 0 var(--line)}
@@ -627,6 +626,26 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .calcell .hn.hmore{color:var(--faint)}
 :root[data-bg="linear"] .calcell .hm{display:none}
 :root[data-bg="linear"] .holsets{display:flex;gap:6px;flex-wrap:wrap}
+:root[data-bg="linear"] .callay{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start}
+:root[data-bg="linear"] .calmain{display:flex;flex-direction:column;gap:16px;min-width:0}
+:root[data-bg="linear"] .mlist{border-radius:10px;box-shadow:inset 0 0 0 1px var(--line);background:var(--glass);padding:12px 0 6px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto}
+:root[data-bg="linear"] .mlhd{display:flex;align-items:baseline;gap:8px;padding:0 14px 8px;box-shadow:inset 0 -1px 0 var(--line)}
+:root[data-bg="linear"] .mlhd h3{margin:0;font-size:14px;font-weight:600}:root[data-bg="linear"] .mlhd .cnt{font-size:12.5px;color:var(--faint)}
+:root[data-bg="linear"] .mlist ul{list-style:none;margin:0;padding:0}
+:root[data-bg="linear"] .mlg{display:flex;gap:10px;padding:8px 14px 8px 10px;box-shadow:inset 0 -1px 0 var(--line)}:root[data-bg="linear"] .mlg:last-child{box-shadow:none}
+:root[data-bg="linear"] .mlg.sel{background:rgba(113,128,240,.08)}
+:root[data-bg="linear"] .mld{flex:0 0 34px;display:flex;flex-direction:column;align-items:center;gap:1px;border:0;background:none;color:var(--ink);font:inherit;cursor:pointer;padding:2px 0;border-radius:6px}
+:root[data-bg="linear"] .mdn{font-size:15px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}:root[data-bg="linear"] .mdn.over{color:#ff8a8a}:root[data-bg="linear"] .mlg.today .mdn{color:#8b97ff}
+:root[data-bg="linear"] .mwd{font-size:11px;color:var(--faint)}
+:root[data-bg="linear"] .mlc{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-top:1px}
+:root[data-bg="linear"] .mlh{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:20px}:root[data-bg="linear"] .mlh b{font-size:9px;font-weight:600;margin-right:5px}
+:root[data-bg="linear"] .mlh.s-ab b{color:#ff8a8a}:root[data-bg="linear"] .mlh.s-us b{color:#8fb4ff}:root[data-bg="linear"] .mlh.s-kr b{color:#6fd0a0}
+:root[data-bg="linear"] .mli{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;text-align:left;padding:2px 6px;margin:0 -6px;border-radius:6px;cursor:pointer;min-width:0;line-height:20px}
+:root[data-bg="linear"] .mli:hover,:root[data-bg="linear"] .mld:hover{background:rgba(255,255,255,.05)}
+:root[data-bg="linear"] .mli .cd{flex:none}:root[data-bg="linear"] .mli .mt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}:root[data-bg="linear"] .mli .mc{flex:none;font-size:11.5px;color:var(--faint);max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:root[data-bg="linear"] .mli.isdone .mt{color:var(--faint);text-decoration:line-through}
+:root[data-bg="linear"] .mlist .catempty{padding:14px}
+@media (max-width:860px){:root[data-bg="linear"] .callay{grid-template-columns:1fr}:root[data-bg="linear"] .mlist{position:static;max-height:none}}
 :root[data-bg="linear"] .hset{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border:0;border-radius:99px;font:inherit;font-size:12.5px;color:var(--faint);background:rgba(255,255,255,.04);cursor:pointer}
 :root[data-bg="linear"] .hset i{width:7px;height:7px;border-radius:50%;opacity:.35}
 :root[data-bg="linear"] .hset.on{color:var(--ink);background:rgba(255,255,255,.08)}
@@ -646,7 +665,12 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .caladd{display:flex;gap:8px;align-items:center}
 :root[data-bg="linear"] .caladd .inp{flex:1 1 auto;min-width:0}
 :root[data-bg="linear"] .caladd select.inp{flex:0 0 150px}
-@media (max-width:540px){:root[data-bg="linear"] .calcell{min-height:54px;padding:5px 2px;align-items:center}:root[data-bg="linear"] .calcell .dn{margin:0}:root[data-bg="linear"] .calcell .hn{display:none}:root[data-bg="linear"] .calcell .hm{display:flex;gap:2px;justify-content:center}:root[data-bg="linear"] .hm i{width:10px;height:2px;border-radius:1px}:root[data-bg="linear"] .calcell .dots{justify-content:center;gap:2px}:root[data-bg="linear"] .cd{width:5px;height:5px}:root[data-bg="linear"] .caladd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}:root[data-bg="linear"] .caladd .inp:first-child{grid-column:1/-1}:root[data-bg="linear"] .caladd select.inp{width:100%}}
+@media (max-width:540px){:root[data-bg="linear"] .holsets{order:3;width:100%}:root[data-bg="linear"] .calcell{min-height:54px;padding:5px 2px;align-items:center}:root[data-bg="linear"] .calcell .dn{margin:0}:root[data-bg="linear"] .calcell .hn{display:none}:root[data-bg="linear"] .calcell .hm{display:flex;gap:2px;justify-content:center}:root[data-bg="linear"] .hm i{width:10px;height:2px;border-radius:1px}:root[data-bg="linear"] .calcell .dots{justify-content:center;gap:2px}:root[data-bg="linear"] .cd{width:5px;height:5px}:root[data-bg="linear"] .caladd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}:root[data-bg="linear"] .caladd .inp:first-child{grid-column:1/-1}:root[data-bg="linear"] .caladd select.inp{width:100%}}
+:root[data-bg="linear"] .rtag{display:inline-flex;align-items:center;gap:4px;flex:none;font-size:12px;color:var(--faint);white-space:nowrap;margin-right:6px}
+:root[data-bg="linear"] .rtag svg{width:13px;height:13px}
+:root[data-bg="linear"] .rtag.habit{color:#6fd0a0}
+:root[data-bg="linear"] .rephint{font-size:12px;color:var(--faint);padding:0 2px}
+@media (max-width:540px){:root[data-bg="linear"] .rtag .rl{display:none}:root[data-bg="linear"] .rtag{margin-right:4px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -680,7 +704,7 @@ var IC={
   pen:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5l3 3L7 16H4v-3z"/></svg>',
   trash:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg>',
   search:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/></svg>',
-  cart:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h2l1.9 9h8.8l1.8-6.5H5.6"/><circle cx="8" cy="16.2" r="1.2"/><circle cx="14.2" cy="16.2" r="1.2"/></svg>',cal:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="13" height="12" rx="2.5"/><path d="M3.5 8.5h13M7 3v3M13 3v3"/></svg>',
+  cart:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h2l1.9 9h8.8l1.8-6.5H5.6"/><circle cx="8" cy="16.2" r="1.2"/><circle cx="14.2" cy="16.2" r="1.2"/></svg>',rep:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9a6 6 0 0 1 10.5-4M16 4v3.5h-3.5M16 11a6 6 0 0 1-10.5 4M4 16v-3.5h3.5"/></svg>',cal:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="13" height="12" rx="2.5"/><path d="M3.5 8.5h13M7 3v3M13 3v3"/></svg>',
   flag:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.5l6-.8z"/></svg>'
 };
 
@@ -690,6 +714,12 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function today(){var d=new Date();d.setHours(0,0,0,0);return d;}
 function parse(s){var p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
 function dday(s){return Math.round((parse(s)-today())/86400000);}
+var REPS=[['','안 함'],['1d','매일'],['1w','매주'],['2w','2주마다'],['1m','매달'],['3m','3개월마다'],['1y','매년']];var REPL={};REPS.forEach(function(r){REPL[r[0]]=r[1];});
+function repAdd(d,r){var n=+r.slice(0,-1),u=r.slice(-1),x=new Date(d.getFullYear(),d.getMonth(),d.getDate());if(u==='d')x.setDate(x.getDate()+n);else if(u==='w')x.setDate(x.getDate()+7*n);else{var day=x.getDate();x.setDate(1);x.setMonth(x.getMonth()+(u==='m'?n:12*n));var dm=new Date(x.getFullYear(),x.getMonth()+1,0).getDate();x.setDate(Math.min(day,dm));}return x;}
+function repDays(r){var n=+r.slice(0,-1),u=r.slice(-1);return n*({d:1,w:7,m:31,y:366}[u]);}
+function streak(it){if(!it.rep||!it.log||!it.log.length)return 0;var ts=ymd(today());if(it.due&&it.due<ts)return 0;var L=it.log.slice().sort().reverse(),k=1,lim=repDays(it.rep);for(var i=0;i<L.length-1;i++){if((parse(L[i])-parse(L[i+1]))/864e5<=lim)k++;else break;}return k;}
+function completeRep(it){var t=today(),ts=ymd(t);it.log=(it.log||[]).filter(function(x){return x!==ts;});it.log.push(ts);if(it.log.length>400)it.log=it.log.slice(-400);var nx=repAdd(it.due?parse(it.due):t,it.rep);while(ymd(nx)<=ts)nx=repAdd(nx,it.rep);it.due=ymd(nx);it.status='todo';delete it.prev;delete it.o;it.subs.forEach(function(x){x.d=false;});}
+function repTag(it){if(!it.rep)return '';var k=it.habit?streak(it):0;return '<span class="rtag'+(it.habit?' habit':'')+'" title="'+(it.habit?'습관 · ':'반복 · ')+REPL[it.rep]+'">'+IC.rep+'<span class="rl">'+(it.habit?'습관 · ':'')+REPL[it.rep]+(k>1?' · '+k+'연속':'')+'</span></span>';}
 function fmt(s){var d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')';}
 function ddTag(it){
   if(!it.due)return '';
@@ -761,12 +791,15 @@ function itemHTML(it){
   var h='<li class="item glass s-'+it.status+(raised?' raised':'')+'" data-id="'+it.id+'"><div class="row">'+
     '<div class="stw lead"><button type="button" class="sicon s-'+it.status+'" data-act="stmenu" data-id="'+it.id+'" data-k="l:'+it.id+'" aria-haspopup="menu" aria-expanded="'+(menuOpen==='l:'+it.id)+'" aria-label="상태: '+SL[it.status]+'" title="'+SL[it.status]+'">'+SICON[it.status]+'</button>'+(menuOpen==='l:'+it.id?menuHTML(it):'')+'</div>'+
     (editingTitle===it.id?'<div class="ttl"><input class="dt-title" id="title-'+it.id+'" data-act="title" value="'+esc(it.title)+'" aria-label="제목"></div>':'<button class="ttl" data-act="expand" aria-expanded="'+(open[it.id]?'true':'false')+'"><span class="t">'+esc(it.title)+'</span>'+(meta.length?'<span class="m">'+esc(meta.join(' · '))+'</span>':'')+'</button>')+
-    ddTag(it)+
+    repTag(it)+ddTag(it)+
     '<button class="pin" data-act="pin" aria-pressed="'+(it.pin?'true':'false')+'" aria-label="우선순위 고정" title="우선순위 고정">'+IC.star+'</button><button class="x" data-act="itemdel" aria-label="'+esc(it.title)+' 삭제" title="삭제">×</button></div><button class="swdel" data-act="itemdel" tabindex="-1" aria-label="'+esc(it.title)+' 삭제"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg></button>';
   if(open[it.id]){
     h+='<div class="detail">'+
       '<div class="props"><label class="prop"><span class="pk">기한</span><input class="pv" type="date" id="due-'+it.id+'" data-act="due" value="'+esc(it.due)+'"></label>'+
-      '<label class="prop"><span class="pk">분류</span><select class="pv" id="cat-'+it.id+'" data-act="cat">'+catOptions(it.cat)+'</select></label></div>'+
+      '<label class="prop"><span class="pk">분류</span><select class="pv" id="cat-'+it.id+'" data-act="cat">'+catOptions(it.cat)+'</select></label>'+
+      '<label class="prop"><span class="pk">유형</span><select class="pv" id="kind-'+it.id+'" data-act="kind"><option value="task"'+(it.habit?'':' selected')+'>할 일</option><option value="habit"'+(it.habit?' selected':'')+'>습관</option></select></label>'+
+      '<label class="prop"><span class="pk">반복</span><select class="pv" id="rep-'+it.id+'" data-act="rep">'+REPS.map(function(r){return '<option value="'+r[0]+'"'+((it.rep||'')===r[0]?' selected':'')+'>'+r[1]+'</option>';}).join('')+'</select></label></div>'+
+      (it.rep?'<div class="rephint">'+(it.habit&&(it.log||[]).length?'완료 '+it.log.length+'회'+(streak(it)>1?' · 연속 '+streak(it)+'회':'')+' · 최근 '+fmt(it.log.slice().sort().pop())+' — ':'')+'완료하면 다음 기한('+REPL[it.rep]+')으로 자동으로 넘어가요.</div>':'')+
       '<textarea class="dt-note" id="note-'+it.id+'" data-act="note" rows="2" placeholder="메모 추가…" aria-label="메모">'+esc(it.note)+'</textarea>'+
       '<div class="sublist"><div class="subhead"><span>세부 체크리스트</span>'+(it.subs.length?'<span class="subprog">'+subsDone+'/'+it.subs.length+'</span>':'')+'</div><ul class="subs">'+it.subs.map(function(s,i){
         return '<li class="'+(s.d?'done':'')+'"><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+' aria-label="'+esc(s.t)+' 완료"> '+(editingSub===it.id+':'+i?'<input class="subedit" id="subedit-'+it.id+'-'+i+'" data-act="subtext" data-i="'+i+'" value="'+esc(s.t)+'" aria-label="세부 항목 수정">':'<span class="subt" data-act="subtoggle" data-i="'+i+'">'+esc(s.t)+'</span><button class="ed" data-act="subedit" data-i="'+i+'" aria-label="'+esc(s.t)+' 수정" title="수정">'+IC.pen+'</button>')+'<button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
@@ -827,6 +860,7 @@ function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%
 var HOLI={};
 var KRLUNAR={2024:[[2,10],[5,15],[9,17]],2025:[[1,29],[5,5],[10,6]],2026:[[2,17],[5,24],[9,25]],2027:[[2,7],[5,13],[9,15]],2028:[[1,27],[5,2],[10,3]],2029:[[2,13],[5,20],[9,22]],2030:[[2,3],[5,9],[9,12]],2031:[[1,23],[5,28],[10,1]],2032:[[2,11],[5,16],[9,19]],2033:[[1,31],[5,6],[9,8]],2034:[[2,19],[5,25],[9,27]],2035:[[2,8],[5,15],[9,16]],2036:[[1,28],[5,3],[10,4]],2037:[[2,15],[5,22],[9,24]],2038:[[2,4],[5,11],[9,13]],2039:[[1,24],[4,30],[10,2]],2040:[[2,12],[5,18],[9,21]],2041:[[2,1],[5,7],[9,10]],2042:[[1,22],[5,26],[9,28]],2043:[[2,10],[5,16],[9,17]],2044:[[1,30],[5,5],[10,5]],2045:[[2,17],[5,24],[9,25]]};
 var KRTEMP={'2026-06-03':'지방선거일'};
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'],WDE=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var HOLCD={ab:'AB',us:'US',kr:'KR'},HOLNM={ab:'Alberta',us:'US',kr:'한국'};
 var HOLSETS=[['ab','Alberta'],['us','US'],['kr','한국']];
 function holSets(){var o=S.holSets||{};return {ab:o.ab!==false,us:o.us!==false,kr:o.kr!==false};}
@@ -858,12 +892,13 @@ function renderCal(){
   var y=+calMonth.slice(0,4),m=+calMonth.slice(5,7)-1;
   var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span></div><h1>Calendar</h1></header>'+viewTabs();
   var L='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l-5 5 5 5"/></svg>',Rr='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5-5 5"/></svg>';
-  h+='<div class="calnav"><button class="ib" data-cal="prev" aria-label="이전 달">'+L+'</button><h2 class="calm">'+y+'년 '+(m+1)+'월</h2><button class="ib" data-cal="next" aria-label="다음 달">'+Rr+'</button><button class="btn ghost sm" data-cal="today">오늘</button></div>';
-  var hsz=holSets();h+='<div class="holsets" role="group" aria-label="공휴일 표시">'+HOLSETS.map(function(p){return '<button type="button" class="hset s-'+p[0]+(hsz[p[0]]?' on':'')+'" data-cal="hs" data-s="'+p[0]+'" aria-pressed="'+(hsz[p[0]]?'true':'false')+'"><i></i>'+p[1]+'</button>';}).join('')+'</div>';
+  var hsz=holSets();
+  h+='<div class="calnav"><h2 class="calm">'+MONTHS[m]+' '+y+'</h2><div class="holsets" role="group" aria-label="공휴일 표시">'+HOLSETS.map(function(p){return '<button type="button" class="hset s-'+p[0]+(hsz[p[0]]?' on':'')+'" data-cal="hs" data-s="'+p[0]+'" aria-pressed="'+(hsz[p[0]]?'true':'false')+'"><i></i>'+p[1]+'</button>';}).join('')+'</div><div class="calctl"><button class="btn ghost sm" data-cal="today">Today</button><button class="ib" data-cal="prev" aria-label="이전 달">'+L+'</button><button class="ib" data-cal="next" aria-label="다음 달">'+Rr+'</button></div></div>';
+  h+='<div class="callay"><div class="calmain">';
   var by={};S.items.forEach(function(it){if(it.due)(by[it.due]=by[it.due]||[]).push(it);});
   var first=new Date(y,m,1),dim=new Date(y,m+1,0).getDate(),rows=Math.ceil((first.getDay()+dim)/7);
-  h+='<div class="calgrid" role="grid" aria-label="'+y+'년 '+(m+1)+'월">';
-  WD.forEach(function(w,i){h+='<div class="calwd'+(i===0?' sun':(i===6?' sat':''))+'">'+w+'</div>';});
+  h+='<div class="calgrid" role="grid" aria-label="'+MONTHS[m]+' '+y+'">';
+  WDE.forEach(function(w,i){h+='<div class="calwd'+(i===0?' sun':(i===6?' sat':''))+'">'+w+'</div>';});
   for(var i=0;i<rows*7;i++){var d=new Date(y,m,1-first.getDay()+i);var ds=ymd(d);var inm=d.getMonth()===m;var hl=holOn(ds);var stat=hl.some(function(x){return x.s==='ab'&&!x.o;});var its=by[ds]||[];
     var dots=its.slice(0,4).map(function(x){var cls=x.status==='done'?'done':((ds<ts)?'over':x.status);return '<i class="cd '+cls+'"></i>';}).join('')+(its.length>4?'<span class="more">+'+(its.length-4)+'</span>':'');
     var lab=(d.getMonth()+1)+'월 '+d.getDate()+'일'+(hl.length?', '+hl.map(function(x){return HOLNM[x.s]+' '+x.n;}).join(', '):'')+(its.length?', 할 일 '+its.length+'개':'');
@@ -871,14 +906,26 @@ function renderCal(){
   h+='</div>';
   var sd=parse(calSel),hs=holOn(calSel),order={doing:0,check:1,todo:2,wait:3,done:4},oo=function(x){return typeof x.o==='number'?x.o:1e9;};
   var list=(by[calSel]||[]).slice().sort(function(a,b){return (order[a.status]-order[b.status])||(b.pin-a.pin)||(oo(a)-oo(b));});
-  h+='<div class="calday-h"><h3>'+(sd.getMonth()+1)+'월 '+sd.getDate()+'일 ('+WD[sd.getDay()]+')</h3>'+hs.map(function(x){return '<span class="holtag s-'+x.s+'"><b>'+HOLNM[x.s]+'</b>'+esc(x.n)+(x.s==='ab'?(x.o?' · optional':' · stat'):(x.s==='us'?' · federal':''))+'</span>';}).join('')+'<span class="cnt">'+(list.length?'할 일 '+list.length+'개':'')+'</span></div>';
+  h+='<div class="calday-h"><h3>'+WDE[sd.getDay()]+', '+MONTHS[sd.getMonth()].slice(0,3)+' '+sd.getDate()+'</h3>'+hs.map(function(x){return '<span class="holtag s-'+x.s+'"><b>'+HOLNM[x.s]+'</b>'+esc(x.n)+(x.s==='ab'?(x.o?' · optional':' · stat'):(x.s==='us'?' · federal':''))+'</span>';}).join('')+'<span class="cnt">'+(list.length?'할 일 '+list.length+'개':'')+'</span></div>';
   h+='<div class="groups calday"><section class="cat">';
   if(list.length)h+='<ul class="items">'+list.map(itemHTML).join('')+'</ul>';else h+='<div class="catempty">이 날짜에 기한인 할 일이 없어요.</div>';
   h+='<div class="inl caladd"><input class="inp" id="cal-new" placeholder="'+(sd.getMonth()+1)+'/'+sd.getDate()+' 기한으로 할 일 추가, Enter" aria-label="이 날짜에 할 일 추가" autocomplete="off"><select class="inp" id="cal-cat" aria-label="분류">'+catOptions(lastCalCat||(S.cats[0]&&S.cats[0].id))+'</select><button class="btn sm" data-cal="add">추가</button></div>';
   h+='</section></div></div>';
+  h+=monthList(y,m,by,ts)+'</div></div>';
   var ae=document.activeElement,aid=ae&&ae.id;
   document.getElementById('root').innerHTML=h;
   if(aid){var n=document.getElementById(aid);if(n)n.focus({preventScroll:true});}
+}
+function monthList(y,m,by,ts){
+  var dim=new Date(y,m+1,0).getDate(),rows='',total=0,order={doing:0,check:1,todo:2,wait:3,done:4};
+  var catN={};S.cats.forEach(function(c){catN[c.id]=c.name;});
+  for(var d=1;d<=dim;d++){var dt=new Date(y,m,d),ds=ymd(dt);var its=(by[ds]||[]).slice().sort(function(a,b){return order[a.status]-order[b.status];});var hl=holOn(ds);
+    if(!its.length&&!hl.length)continue;total+=its.length;
+    var over=ds<ts&&its.some(function(x){return x.status!=='done';});
+    rows+='<li class="mlg'+(ds===calSel?' sel':'')+(ds===ts?' today':'')+'"><button type="button" class="mld" data-cal="day" data-date="'+ds+'"><span class="mdn'+(over?' over':'')+'">'+d+'</span><span class="mwd">'+WDE[dt.getDay()]+'</span></button><div class="mlc">'+
+      hl.map(function(x){return '<div class="mlh s-'+x.s+'"><b>'+HOLCD[x.s]+'</b>'+esc(x.n)+'</div>';}).join('')+
+      its.map(function(x){var st=x.status==='done'?'done':((ds<ts)?'over':x.status);return '<button type="button" class="mli'+(x.status==='done'?' isdone':'')+'" data-cal="day" data-date="'+ds+'"><i class="cd '+st+'"></i><span class="mt">'+esc(x.title)+'</span><span class="mc">'+esc(catN[x.cat]||'')+'</span></button>';}).join('')+'</div></li>';}
+  return '<aside class="mlist" aria-label="이번 달 목록"><div class="mlhd"><h3>'+MONTHS[m]+'</h3><span class="cnt">'+(total?'할 일 '+total+'개':'')+'</span></div>'+(rows?'<ul>'+rows+'</ul>':'<div class="catempty">이번 달에 기한인 할 일이 없어요.</div>')+'</aside>';
 }
 function renderPri(){
   var t=today();
@@ -886,7 +933,7 @@ function renderPri(){
   var order={doing:0,check:1,todo:2,wait:3,done:4};var oo=function(x){return typeof x.o==='number'?x.o:1e9;};
   var pins=S.items.filter(function(x){return x.pin&&x.status!=='done';});
   var dues=pins.filter(function(x){return x.due;}).length;
-  h+='<p class="prisub">★ 고정한 할 일 '+pins.length+'개'+(dues?' · 기한 있는 것 '+dues+'개':'')+'</p>';
+  h+='<p class="prisub">고정한 할 일 '+pins.length+'개'+(dues?' · 기한 있는 것 '+dues+'개':'')+'</p>';
   h+='<div class="groups prilist">';
   if(!pins.length)h+='<div class="catempty">아직 고정한 할 일이 없어요. Agenda 탭에서 항목 오른쪽 ★를 누르면 여기에 모여요.</div>';
   S.cats.forEach(function(cat){var l=pins.filter(function(x){return x.cat===cat.id;});if(!l.length)return;
@@ -1046,10 +1093,10 @@ root.addEventListener('click',function(e){
   var li=a.closest('.item');
   var id=a.getAttribute('data-id')||(li&&li.getAttribute('data-id'));var it=find(id);if(!it)return;
   if(act==='stmenu'){var k=a.getAttribute('data-k');menuOpen=(menuOpen===k)?null:k;render();return;}
-  if(act==='setst'){var v=a.getAttribute('data-v');menuOpen=null;if(v===it.status){render();return;}mutate(function(){if(v==='done')it.prev=it.status;it.status=v;delete it.o;});return;}
+  if(act==='setst'){var v=a.getAttribute('data-v');menuOpen=null;if(v===it.status){render();return;}mutate(function(){if(v==='done'&&it.rep){completeRep(it);return;}if(v==='done')it.prev=it.status;it.status=v;delete it.o;});return;}
   if(act==='rename'){editingTitle=it.id;render();var ti=document.getElementById('title-'+it.id);if(ti){ti.focus();ti.select();}return;}
   if(act==='expand'){open[it.id]=!open[it.id];if(!open[it.id])delete open[it.id];armed=null;keepOpen();render();return;}
-  if(act==='toggle'){mutate(function(){if(it.status==='done'){it.status=it.prev||'todo';}else{it.prev=it.status;it.status='done';}});return;}
+  if(act==='toggle'){mutate(function(){if(it.status==='done'){it.status=it.prev||'todo';}else if(it.rep){completeRep(it);}else{it.prev=it.status;it.status='done';}});return;}
   if(act==='pin'){mutate(function(){it.pin=!it.pin;});return;}
   if(act==='itemdel'){deleteItem(it.id);return;}
   if(act==='subtoggle'){var k=+a.getAttribute('data-i');mutate(function(){it.subs[k].d=!it.subs[k].d;});return;}
@@ -1071,6 +1118,8 @@ root.addEventListener('change',function(e){
   else if(act==='title'){var v=a.value.trim();editingTitle=null;if(v&&v!==it.title)mutate(function(){it.title=v;});else render();}
   else if(act==='due'){mutate(function(){it.due=a.value||'';});}
   else if(act==='cat'){mutate(function(){it.cat=a.value;});}
+  else if(act==='rep'){mutate(function(){if(a.value){it.rep=a.value;if(!it.due)it.due=ymd(today());}else{delete it.rep;it.habit=false;}});}
+  else if(act==='kind'){mutate(function(){it.habit=a.value==='habit';if(it.habit&&!it.rep){it.rep='1d';if(!it.due)it.due=ymd(today());}});}
   else if(act==='note'){if(a.value!==it.note)mutate(function(){it.note=a.value;});}
 });
 root.addEventListener('input',function(e){
