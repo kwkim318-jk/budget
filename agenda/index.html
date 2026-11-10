@@ -683,7 +683,7 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .rephint{font-size:12px;color:var(--faint);min-width:0}
 :root[data-bg="linear"] .addform{grid-template-columns:minmax(0,1fr) 136px 140px 88px 88px 112px}:root[data-bg="linear"] .addform select:disabled{opacity:.4;cursor:default}
 :root[data-bg="linear"] .wdpick{position:relative;display:inline-flex}
-:root[data-bg="linear"] h1.vtitle{cursor:text;border-radius:6px;margin-left:-6px;padding:0 6px;display:inline-block;align-self:flex-start}:root[data-bg="linear"] h1.vtitle:hover{background:rgba(255,255,255,.05)}
+:root[data-bg="linear"] h1.vtitle{cursor:default;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;border-radius:6px;margin-left:-6px;padding:0 6px;display:inline-block;align-self:flex-start}
 :root[data-bg="linear"] .h1edit{font:inherit;color:inherit;letter-spacing:inherit;background:rgba(255,255,255,.05);border:0;outline:none;box-shadow:inset 0 0 0 1px var(--accent);border-radius:6px;padding:0 6px;margin-left:-6px;width:min(100%,360px)}
 :root[data-bg="linear"] .dclr{width:22px;height:22px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--faint);cursor:pointer;padding:0;margin-left:-2px}:root[data-bg="linear"] .dclr svg{width:12px;height:12px}:root[data-bg="linear"] .dclr:hover{color:var(--ink);background:rgba(255,255,255,.08)}
 :root[data-bg="linear"] .wdbtn{border:0;background:transparent;color:var(--ink);font:inherit;font-size:12.5px;font-weight:500;padding:3px 22px 3px 6px;border-radius:4px;cursor:pointer;white-space:nowrap;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-size:4px 4px,4px 4px;background-repeat:no-repeat;background-position:calc(100% - 11px) 52%,calc(100% - 7px) 52%}
@@ -920,7 +920,7 @@ function commitNewAisle(){var i=document.getElementById('aislenew-input');var v=
 if(!S.shop)S.shop=[{id:'s1',name:'계란',qty:'1판',aisle:'유제품·계란',done:false},{id:'s2',name:'우유',qty:'2L',aisle:'유제품·계란',done:false},{id:'s3',name:'양파',qty:'',aisle:'채소·과일',done:false},{id:'s4',name:'휴지',qty:'',aisle:'생활용품',done:false}];
 var VTDEF={agenda:'Agenda',pri:'Starred',cal:'Calendar',shop:'Grocery'},editingView=null;
 function vtName(k){return (S.titles&&S.titles[k])||VTDEF[k];}
-function vtH1(k){if(editingView===k)return '<h1><input id="vt-edit" class="h1edit" data-v="'+k+'" value="'+esc(vtName(k))+'" maxlength="30" aria-label="탭 이름" autocomplete="off"></h1>';return '<h1 class="vtitle" data-act="vtitle" data-v="'+k+'" title="눌러서 이름 바꾸기">'+esc(vtName(k))+'</h1>';}
+function vtH1(k){if(editingView===k)return '<h1><input id="vt-edit" class="h1edit" data-v="'+k+'" value="'+esc(vtName(k))+'" maxlength="30" aria-label="탭 이름" autocomplete="off"></h1>';return '<h1 class="vtitle" data-act="vtitle" data-v="'+k+'" title="두 번 클릭(모바일은 길게 누르기)해서 이름 바꾸기">'+esc(vtName(k))+'</h1>';}
 function tabOrder(){var d=['agenda','pri','cal','shop'];var t=S.tabs;if(!t||!t.length)return d.slice();var res=t.filter(function(x){return d.indexOf(x)>=0;});d.forEach(function(k,i){if(res.indexOf(k)>=0)return;var at=0;for(var p=i-1;p>=0;p--){var q=res.indexOf(d[p]);if(q>=0){at=q+1;break;}}res.splice(at,0,k);});return res;}
 function viewTabs(){var n=S.shop.filter(function(x){return !x.done;}).length;var np=S.items.filter(function(x){return x.pin&&x.status!=='done';}).length;var na=S.items.filter(function(x){return x.status!=='done';}).length;var cm=ymd(today()).slice(0,7);var nc=S.items.filter(function(x){return x.due&&x.status!=='done'&&x.due.slice(0,7)===cm;}).length;return '<nav class="vtabs" role="tablist" aria-label="화면">'+tabOrder().map(function(k){return {agenda:['agenda',esc(vtName('agenda')),na],pri:['pri','<span class="vstar" aria-hidden="true">'+IC.star+'</span>',np],cal:['cal','<span class="vstar" aria-hidden="true">'+IC.cal+'</span>',nc],shop:['shop','<span class="vstar" aria-hidden="true">'+IC.cart+'</span>',n]}[k];}).map(function(v){return '<button class="vtab" role="tab" data-view="'+v[0]+'" aria-selected="'+(view===v[0])+'"'+(v[0]!=='agenda'?' aria-label="'+esc(vtName(v[0]))+'" title="'+esc(vtName(v[0]))+'"':'')+'>'+v[1]+(v[2]!==''?'<span class="c">'+v[2]+'</span>':'')+'</button>';}).join('')+'</nav>';}
 function shopRow(x){var st=x.done?'done':'todo';return '<li class="item shop s-'+st+'" data-sid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="shoptoggle" aria-label="'+(x.done?'담기 취소':'담았음으로 표시')+'">'+SICON[st]+'</button><span class="ttl"><span class="t">'+esc(x.name)+'</span>'+(x.qty?'<span class="m">'+esc(x.qty)+'</span>':'')+'</span><button class="x" data-act="shopdel" aria-label="'+esc(x.name)+' 삭제">×</button></div><button class="swdel" data-act="shopdel" tabindex="-1" aria-label="'+esc(x.name)+' 삭제"><svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6\"/></svg></button></li>';}
@@ -1117,7 +1117,6 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&menuOpen){menuOpen=null;render();}
 });
 root.addEventListener('click',function(e){
-  var vh=e.target.closest('[data-act="vtitle"]');if(vh){editingView=vh.getAttribute('data-v');render();var vi=document.getElementById('vt-edit');if(vi){vi.focus();vi.select();}return;}
   var vt=e.target.closest('[data-view]');if(vt){view=vt.getAttribute('data-view');try{sessionStorage.setItem(LSKEY+'-view',view);}catch(e3){}render();return;}
   var cb=e.target.closest('[data-cal]');if(cb){var ca=cb.getAttribute('data-cal');
     if(ca==='day'){calSel=cb.getAttribute('data-date');calMonth=calSel.slice(0,7);render();return;}
@@ -1359,6 +1358,12 @@ window.addEventListener('pointercancel',function(){sw=null;finish();});
 document.addEventListener('touchmove',function(e){if(dr)e.preventDefault();},{passive:false});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dr){dr.target=null;finish();}});
 })();
+function startVt(k){editingView=k;render();var vi=document.getElementById('vt-edit');if(vi){vi.focus();vi.select();}}
+root.addEventListener('dblclick',function(e){var vh=e.target.closest('[data-act="vtitle"]');if(vh){e.preventDefault();startVt(vh.getAttribute('data-v'));}});
+(function(){var t=null,sx=0,sy=0;function clr(){if(t){clearTimeout(t);t=null;}}
+ root.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse')return;var vh=e.target.closest('[data-act="vtitle"]');if(!vh)return;sx=e.clientX;sy=e.clientY;clr();t=setTimeout(function(){t=null;if(navigator.vibrate)try{navigator.vibrate(10);}catch(x){}startVt(vh.getAttribute('data-v'));},500);});
+ root.addEventListener('pointermove',function(e){if(t&&(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8))clr();});
+ root.addEventListener('pointerup',clr);root.addEventListener('pointercancel',clr);})();
 function commitVt(inp){if(!inp||editingView===null)return;var k=inp.getAttribute('data-v'),v=inp.value.trim();editingView=null;if(v&&v!==VTDEF[k]){if(v===vtName(k)){render();return;}mutate(function(){S.titles=S.titles||{};S.titles[k]=v;});}else if(S.titles&&S.titles[k]){mutate(function(){delete S.titles[k];});}else render();}
 root.addEventListener('focusout',function(e){if(e.target.id==='vt-edit')commitVt(e.target);});
 root.addEventListener('keydown',function(e){if(e.target.id!=='vt-edit')return;if(e.key==='Enter'){e.preventDefault();e.target.blur();}else if(e.key==='Escape'){e.preventDefault();e.target.value=vtName(e.target.getAttribute('data-v'));e.target.blur();}},true);
