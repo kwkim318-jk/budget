@@ -595,6 +595,8 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 
 :root[data-bg="linear"] .vtab{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 :root[data-bg="linear"] .vtab.tab-lifted{position:relative;z-index:40;background:#24252b;border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.12),0 8px 20px rgba(0,0,0,.5);transition:none}
+:root[data-bg="linear"] .vtab .vstar{display:inline-grid;place-items:center;color:#f2c94c;vertical-align:-2px}
+:root[data-bg="linear"] .vtab .vstar svg{width:16px;height:16px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -766,7 +768,7 @@ function commitAisle(inp){var old=shopEditAisle;shopEditAisle=null;var v=inp.val
 function commitNewAisle(){var i=document.getElementById('aislenew-input');var v=i&&i.value.trim();if(!v){shopAddingAisle=false;render();return;}mutate(function(){ensureAisles();if(S.aisles.indexOf(v)<0)S.aisles.push(v);shopAddingAisle=false;shopInline=v;});var sn=document.getElementById('sinl-name');if(sn)sn.focus({preventScroll:true});}
 if(!S.shop)S.shop=[{id:'s1',name:'계란',qty:'1판',aisle:'유제품·계란',done:false},{id:'s2',name:'우유',qty:'2L',aisle:'유제품·계란',done:false},{id:'s3',name:'양파',qty:'',aisle:'채소·과일',done:false},{id:'s4',name:'휴지',qty:'',aisle:'생활용품',done:false}];
 function tabOrder(){var d=['agenda','pri','shop'];var t=S.tabs;if(!t||t.length!==3||d.some(function(x){return t.indexOf(x)<0;}))return d;return t.slice();}
-function viewTabs(){var n=S.shop.filter(function(x){return !x.done;}).length;var np=S.items.filter(function(x){return x.pin&&x.status!=='done';}).length;return '<nav class="vtabs" role="tablist" aria-label="화면">'+tabOrder().map(function(k){return {agenda:['agenda','Agenda',''],pri:['pri','별표',np],shop:['shop','장보기',n]}[k];}).map(function(v){return '<button class="vtab" role="tab" data-view="'+v[0]+'" aria-selected="'+(view===v[0])+'">'+v[1]+(v[2]!==''?'<span class="c">'+v[2]+'</span>':'')+'</button>';}).join('')+'</nav>';}
+function viewTabs(){var n=S.shop.filter(function(x){return !x.done;}).length;var np=S.items.filter(function(x){return x.pin&&x.status!=='done';}).length;return '<nav class="vtabs" role="tablist" aria-label="화면">'+tabOrder().map(function(k){return {agenda:['agenda','Agenda',''],pri:['pri','<span class="vstar" aria-hidden="true">'+IC.star+'</span>',np],shop:['shop','장보기',n]}[k];}).map(function(v){return '<button class="vtab" role="tab" data-view="'+v[0]+'" aria-selected="'+(view===v[0])+'"'+(v[0]==='pri'?' aria-label="별표" title="별표"':'')+'>'+v[1]+(v[2]!==''?'<span class="c">'+v[2]+'</span>':'')+'</button>';}).join('')+'</nav>';}
 function shopRow(x){var st=x.done?'done':'todo';return '<li class="item shop s-'+st+'" data-sid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="shoptoggle" aria-label="'+(x.done?'담기 취소':'담았음으로 표시')+'">'+SICON[st]+'</button><span class="ttl"><span class="t">'+esc(x.name)+'</span>'+(x.qty?'<span class="m">'+esc(x.qty)+'</span>':'')+'</span><button class="x" data-act="shopdel" aria-label="'+esc(x.name)+' 삭제">×</button></div><button class="swdel" data-act="shopdel" tabindex="-1" aria-label="'+esc(x.name)+' 삭제"><svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6\"/></svg></button></li>';}
 function renderPri(){
   var t=today();
