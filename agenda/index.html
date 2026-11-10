@@ -500,7 +500,7 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 @media (max-width:540px){:root[data-bg="linear"] .shopadd{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto;gap:8px}:root[data-bg="linear"] .shopadd .inp:first-child{grid-column:1/-1}:root[data-bg="linear"] .shopadd .inp,:root[data-bg="linear"] .shopadd select,:root[data-bg="linear"] .shopadd .q,:root[data-bg="linear"] .shopadd .a{width:100%;min-width:0;flex:none}:root[data-bg="linear"] .shopadd .btn{justify-content:center}}
 
 /* installed app: status bar / home indicator */
-@media (display-mode: standalone){:root[data-bg="linear"] .wrap{padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 48px)}:root[data-bg="linear"] .toolbar{top:env(safe-area-inset-top,0px)}}
+@media (display-mode: standalone){:root[data-bg="linear"] .wrap{padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 48px)}:root[data-bg="linear"] .toolbar{top:calc(var(--tabh,37px) + env(safe-area-inset-top,0px))}}
 .appfoot{display:flex;justify-content:center;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
 .appfoot button{border:0;background:none;color:#878c95;font:inherit;font-size:12.5px;padding:6px 10px;border-radius:6px;cursor:pointer}
 .appfoot button:hover{background:rgba(255,255,255,.05);color:#b4b8c0}
