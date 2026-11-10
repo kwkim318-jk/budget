@@ -547,6 +547,8 @@ button.sicon:hover{background:rgba(255,255,255,.07)}
 #undoToast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 #undoToast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 #undoToast button{flex:none;border:0;background:rgba(113,128,240,.18);color:#a9b4ff;font:inherit;font-weight:600;font-size:13px;padding:5px 10px;border-radius:6px;cursor:pointer}
+
+:root[data-bg="linear"] .ib.mv:disabled{opacity:.25;cursor:default;background:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -691,7 +693,7 @@ function catHTML(cat){
   }else{
     h+='<button class="catt" data-act="cattoggle" aria-expanded="'+(!isCol)+'">'+IC.chev+'<span class="nm">'+esc(cat.name)+'</span><span class="cnt">'+list.length+'</span></button>';
   }
-  h+='<div class="cata"><button class="ib" data-act="catadd" title="이 분류에 할 일 추가" aria-label="이 분류에 할 일 추가">'+IC.plus+'</button>'+
+  var ci=S.cats.indexOf(cat);h+='<div class="cata"><button class="ib mv" data-act="catup" title="위로" aria-label="'+esc(cat.name)+' 위로"'+(ci<=0?' disabled':'')+'><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12l4.5-4.5 4.5 4.5"/></svg></button><button class="ib mv" data-act="catdown" title="아래로" aria-label="'+esc(cat.name)+' 아래로"'+(ci>=S.cats.length-1?' disabled':'')+'><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8l4.5 4.5 4.5-4.5"/></svg></button><button class="ib" data-act="catadd" title="이 분류에 할 일 추가" aria-label="이 분류에 할 일 추가">'+IC.plus+'</button>'+
      '<button class="ib" data-act="catren" title="이름 변경" aria-label="분류 이름 변경">'+IC.pen+'</button>';
   if(!all.length)h+='<button class="ib danger'+(armedCat===cat.id?' armed':'')+'" data-act="catdel" title="'+(armedCat===cat.id?'한 번 더 누르면 삭제':'분류 삭제')+'" aria-label="분류 삭제">'+IC.trash+'</button>';
   h+='</div></div>';
@@ -708,6 +710,8 @@ var view='agenda';try{view=sessionStorage.getItem(LSKEY+'-view')||'agenda';}catc
 var AISLES=['채소·과일','정육·수산','유제품·계란','냉동·가공','생활용품','기타'];
 var lastAisle=AISLES[0],shopInline=null,shopEditAisle=null,shopAddingAisle=false,shopArmed=null;
 function ensureAisles(){if(!S.aisles)S.aisles=AISLES.slice();}
+function restoreAisles(){ensureAisles();if(S.aislesFix1)return;AISLES.forEach(function(a,k){if(S.aisles.indexOf(a)>=0)return;var at=0;for(var p=k-1;p>=0;p--){var q=S.aisles.indexOf(AISLES[p]);if(q>=0){at=q+1;break;}}if(a==='기타')at=S.aisles.length;S.aisles.splice(at,0,a);});S.aislesFix1=true;}
+restoreAisles();
 function shopGroups(){ensureAisles();var g=S.aisles.slice();S.shop.forEach(function(x){if(g.indexOf(x.aisle)<0)g.push(x.aisle);});return g;}
 function aisleSelectHTML(){ensureAisles();if(S.aisles.indexOf(lastAisle)<0)lastAisle=S.aisles[0]||'기타';return '<select class="inp a" id="shop-aisle" aria-label="코너">'+S.aisles.map(function(a){return '<option'+(a===lastAisle?' selected':'')+'>'+esc(a)+'</option>';}).join('')+'<option value="__new">+ 새 코너 추가…</option></select>';}
 function backToAisleSelect(w){if(!w)return;var tmp=document.createElement('div');tmp.innerHTML=aisleSelectHTML();var sel=tmp.firstChild;w.replaceWith(sel);sel.focus();}
@@ -848,6 +852,7 @@ root.addEventListener('click',function(e){
   if(act==='newcatcancel'){addingCat=false;render();return;}
   if(act==='catback'){e.preventDefault();backToCatSelect(a.closest('.catnew'));return;}
   var sec=a.closest('section.cat');var catId=sec&&sec.getAttribute('data-cat');
+  if(act==='catup'||act==='catdown'){var i0=-1;S.cats.forEach(function(c,k){if(c.id===catId)i0=k;});var j0=act==='catup'?i0-1:i0+1;if(i0<0||j0<0||j0>=S.cats.length)return;mutate(function(){var tmp=S.cats[i0];S.cats[i0]=S.cats[j0];S.cats[j0]=tmp;});var mb=document.querySelector('section.cat[data-cat="'+catId+'"] [data-act="'+act+'"]');if(mb&&!mb.disabled)mb.focus({preventScroll:true});var ms=document.querySelector('section.cat[data-cat="'+catId+'"]');if(ms)ms.scrollIntoView({block:'nearest'});return;}
   if(act==='cattoggle'){if(collapsed[catId])delete collapsed[catId];else collapsed[catId]=true;keepCollapsed();render();return;}
   if(act==='catren'){editingCat=catId;armedCat=null;render();var ci=document.getElementById('catname-'+catId);if(ci){ci.focus();ci.select();}return;}
   if(act==='catadd'){inlineCat=catId;if(collapsed[catId]){delete collapsed[catId];keepCollapsed();}render();var ni2=document.getElementById('inl-'+catId);if(ni2){ni2.focus({preventScroll:true});ni2.scrollIntoView({block:'nearest',behavior:'smooth'});}return;}
