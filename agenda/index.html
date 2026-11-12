@@ -706,6 +706,8 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 @media (max-width:540px){:root[data-bg="linear"] .mdpick .wdmenu{left:auto;right:-4px}:root[data-bg="linear"] .field .mdpick .wdmenu{right:0}}
 @media (max-width:540px){:root[data-bg="linear"] .wdprop .wdmenu{left:auto;right:-4px}}:root[data-bg="linear"] .addform .field input,:root[data-bg="linear"] .addform .field select{height:34px}@media (max-width:720px){:root[data-bg="linear"] .addform{grid-template-columns:repeat(6,minmax(0,1fr))}:root[data-bg="linear"] .addform .field{grid-column:span 2}:root[data-bg="linear"] .addform .field:nth-child(2),:root[data-bg="linear"] .addform .field:nth-child(3){grid-column:span 3}:root[data-bg="linear"] .addform .field:first-child{grid-column:1/-1}}:root[data-bg="linear"] .addform .repctl{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;gap:12px 24px}:root[data-bg="linear"] .addform .prow{flex-direction:column;align-items:flex-start;gap:6px}:root[data-bg="linear"] .addform .pl{flex:none;padding:0;font-size:12px;color:var(--muted)}:root[data-bg="linear"] .pl{color:var(--muted)}
 @media (max-width:540px){:root[data-bg="linear"] .rtag .rl{display:none}:root[data-bg="linear"] .rchips{gap:5px}:root[data-bg="linear"] .rchips button{padding:0 8px}:root[data-bg="linear"] .seg2 button{padding:0 10px}:root[data-bg="linear"] .rtag{padding:1px 5px}:root[data-bg="linear"] .repctl{flex-direction:row;flex-wrap:wrap;gap:12px 20px}:root[data-bg="linear"] .prow{flex-direction:column;align-items:flex-start;gap:6px}:root[data-bg="linear"] .prow .pl{flex:none}:root[data-bg="linear"] .prow.hint{flex-basis:100%;margin-top:-4px}:root[data-bg="linear"] .prow.hint .pl{display:none}}
+:root[data-bg="linear"] .hw{display:inline-flex;gap:3px;align-items:center;margin-left:6px}:root[data-bg="linear"] .hw i{width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}:root[data-bg="linear"] .hw i.on{background:#6fd0a0;box-shadow:none}:root[data-bg="linear"] .hw i.td:not(.on){box-shadow:inset 0 0 0 1px #6fd0a0}:root[data-bg="linear"] .todaysec .cath .nm{color:#8b97ff}
+@media (max-width:540px){:root[data-bg="linear"] .wrap .bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}:root[data-bg="linear"] .wrap .bento .tile{padding:9px 10px;min-height:0;gap:2px}:root[data-bg="linear"] .wrap .bento .tile .k{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}:root[data-bg="linear"] .wrap .bento .tile .v{font-size:18px;line-height:1.2}:root[data-bg="linear"] .wrap .bento .tile .bar{display:none}:root[data-bg="linear"] .panel.due{padding-top:10px;padding-bottom:8px}:root[data-bg="linear"] .panel.due .plist li:nth-child(n+3){display:none}:root[data-bg="linear"] .calday .caladd{display:flex;flex-wrap:wrap}:root[data-bg="linear"] .calday .caladd .inp:first-child{flex:1 1 100%}:root[data-bg="linear"] .calday .caladd select.inp{flex:1 1 0;width:auto;min-width:0}:root[data-bg="linear"] .calday .caladd .btn{flex:none}:root[data-bg="linear"] .rtag .hw{margin-left:2px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -786,7 +788,7 @@ function repPickDom(btn){var box=btn.closest('.repctl');var act=btn.getAttribute
  function set(sel,val){box.querySelectorAll('[data-act="'+sel+'"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===val));});}
  if(act==='kindpick'){set('kindpick',v);var row=box.querySelector('.rprow');row.hidden=(v==='task');if(v!=='task'&&!box.querySelector('[data-act="reppick"][aria-pressed="true"]'))set('reppick',v==='habit'?'1d':'1w');}
  else set('reppick',v);}
-function repTag(it){if(!it.rep)return '';var k=it.habit?streak(it):0;return '<span class="rtag'+(it.habit?' habit':'')+'" title="'+(it.habit?'습관 · ':'반복 · ')+REPL[it.rep]+'">'+IC.rep+'<span class="rl">'+(it.habit?'습관 · ':'')+REPL[it.rep]+(isWk(it.rep)&&it.wds&&it.wds.length>1?' '+wdsLabel(it.wds):'')+((it.rep==='1m'||it.rep==='3m')?' '+mdsLabel(mdsOf(it)):'')+(it.rep==='1y'?' '+MONL[ydOf(it)[0]]+' '+ydOf(it)[1]+'일':'')+(k>1?' · '+k+'연속':'')+'</span></span>';}
+function repTag(it){if(!it.rep)return '';var k=it.habit?streak(it):0;return '<span class="rtag'+(it.habit?' habit':'')+'" title="'+(it.habit?'습관 · ':'반복 · ')+REPL[it.rep]+'">'+IC.rep+'<span class="rl">'+(it.habit?'습관 · ':'')+REPL[it.rep]+(isWk(it.rep)&&it.wds&&it.wds.length>1?' '+wdsLabel(it.wds):'')+((it.rep==='1m'||it.rep==='3m')?' '+mdsLabel(mdsOf(it)):'')+(it.rep==='1y'?' '+MONL[ydOf(it)[0]]+' '+ydOf(it)[1]+'일':'')+(k>1?' · '+k+'연속':'')+'</span>'+(it.habit?weekDots(it):'')+'</span>';}
 function fmt(s){var d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')';}
 function ddTag(it){
   if(!it.due)return '';
@@ -1014,15 +1016,27 @@ function monthList(y,m,by,ts,pj){pj=pj||{};
       pjs.map(function(x){return '<button type="button" class="mli rp" data-cal="day" data-date="'+ds+'"><span class="rpi">'+IC.rep+'</span><span class="mt">'+esc(x.title)+'</span><span class="mc">'+REPL[x.rep]+'</span></button>';}).join('')+'</div></li>';}
   return '<aside class="mlist" aria-label="이번 달 목록"><div class="mlhd"><h3>'+MONTHS[m]+'</h3><span class="cnt">'+(total?'할 일 '+total+'개':'')+'</span></div>'+(rows?'<ul>'+rows+'</ul>':'<div class="catempty">이번 달에 기한인 할 일이 없어요.</div>')+'</aside>';
 }
+function dueToday(it){var t=today(),ts=ymd(t);if(it.status==='done')return false;if(it.due)return it.due<=ts;if(!it.rep)return false;
+  var log=it.log||[],last=log.length?log.slice().sort().pop():'';if(last===ts)return false;
+  if(isWk(it.rep)&&it.wds&&it.wds.length)return it.wds.indexOf(t.getDay())>=0;
+  if((it.rep==='1m'||it.rep==='3m')&&it.mds&&it.mds.length)return it.mds.some(function(v){return mdIn(t.getFullYear(),t.getMonth(),v)===t.getDate();});
+  if(it.rep==='1y'&&it.yd)return it.yd[0]===t.getMonth()&&mdIn(t.getFullYear(),it.yd[0],it.yd[1])===t.getDate();
+  if(!last)return true;return (t-parse(last))/864e5>={'1d':1,'1w':7,'2w':14,'1m':30,'3m':90,'1y':365}[it.rep];}
+function todayList(){var order={doing:0,check:1,todo:2,wait:3};return S.items.filter(dueToday).sort(function(a,b){return ((a.due||'9')<(b.due||'9')?-1:((a.due||'9')>(b.due||'9')?1:0))||(order[a.status]-order[b.status]);});}
+function weekDots(it){var t=today(),h='',log=it.log||[];for(var i=6;i>=0;i--){var d=new Date(t.getFullYear(),t.getMonth(),t.getDate()-i),k=ymd(d);h+='<i class="'+(log.indexOf(k)>=0?'on':'')+(i===0?' td':'')+'"></i>';}return '<span class="hw" aria-label="최근 7일 중 '+log.filter(function(k){return (t-parse(k))/864e5<7;}).length+'일 완료" title="최근 7일">'+h+'</span>';}
 function renderPri(){
   var t=today();
   var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span></div>'+vtH1('pri')+'</header>'+viewTabs();
   var order={doing:0,check:1,todo:2,wait:3,done:4};var oo=function(x){return typeof x.o==='number'?x.o:1e9;};
   var pins=S.items.filter(function(x){return x.pin&&x.status!=='done';});
   var dues=pins.filter(function(x){return x.due;}).length;
-  h+='<p class="prisub">고정한 할 일 '+pins.length+'개'+(dues?' · 기한 있는 것 '+dues+'개':'')+'</p>';
+  var ts=ymd(t),tl=todayList(),tid={};tl.forEach(function(x){tid[x.id]=1;});
+  var nover=tl.filter(function(x){return x.due&&x.due<ts;}).length;
+  pins=pins.filter(function(x){return !tid[x.id];});
+  h+='<p class="prisub">오늘 '+tl.length+'개'+(nover?' (지난 것 '+nover+'개)':'')+' · 별표 '+pins.length+'개</p>';
   h+='<div class="groups prilist">';
-  if(!pins.length)h+='<div class="catempty">아직 고정한 할 일이 없어요. Agenda 탭에서 항목 오른쪽 ★를 누르면 여기에 모여요.</div>';
+  if(tl.length)h+='<section class="cat prisec todaysec"><div class="cath"><div class="catt"><span class="nm">오늘</span><span class="cnt">'+tl.length+'</span></div></div><ul class="items">'+tl.map(itemHTML).join('')+'</ul></section>';
+  if(!pins.length&&!tl.length)h+='<div class="catempty">아직 고정한 할 일이 없어요. Agenda 탭에서 항목 오른쪽 ★를 누르면 여기에 모여요.</div>';
   S.cats.forEach(function(cat){var l=pins.filter(function(x){return x.cat===cat.id;});if(!l.length)return;
     l.sort(function(a,b){return (order[a.status]-order[b.status])||((a.due||'9')<(b.due||'9')?-1:((a.due||'9')>(b.due||'9')?1:0))||(oo(a)-oo(b));});
     h+='<section class="cat prisec"><div class="cath"><div class="catt"><span class="nm">'+esc(cat.name)+'</span><span class="cnt">'+l.length+'</span></div></div><ul class="items">'+l.map(itemHTML).join('')+'</ul></section>';});
