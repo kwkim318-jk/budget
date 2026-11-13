@@ -1473,7 +1473,7 @@ function drawAsset(rows){
     s+=`<g class="hit" data-m="${i}"><rect x="${x}" y="0" width="${bw}" height="${H}" fill="transparent"/>
       <clipPath id="ascl${i}"><path d="${barPath(x+bw*.22563,tp,bw*.54874,h,v>=0)}"/></clipPath><g class="grow ${v>=0?"":"growd"}" style="--i:${i}" clip-path="url(#ascl${i})"><rect x="${x+bw*.22563}" y="${tp}" width="${bw*.54874}" height="${h}" fill="${col}" opacity="${on?1:.45}"/></g>
       <text class="cv" data-v="${v}" x="${x+bw/2}" y="${ly}" text-anchor="middle" style="${v<0?"fill:var(--warn);":""}${on?"font-weight:700;"+(v<0?"":"fill:var(--ink)"):""}">${fmt1(v)}</text>
-      <text class="cm" x="${x+bw/2}" y="${H-14}" text-anchor="middle" style="${on?"fill:var(--ink);font-weight:700":""}">${(i===0||r.M.m===0)?(r.M.y%100)+"년 ":""}${r.M.m+1}월말</text></g>`});
+      <text class="cm" x="${x+bw/2}" y="${H-14}" text-anchor="middle" style="${on?"fill:var(--ink);font-weight:700":""}">${(i===0||r.M.m===0)?(r.M.y%100)+"년 ":""}${r.M.m+1}월 말</text></g>`});
   const el=$("achart");if(!el)return;el.setAttribute("viewBox",`0 0 ${W} ${H}`);el.setAttribute("width",W);el.setAttribute("height",H);el.innerHTML=GRID(y,bot,top,W,pl,pr)+s;SELFX(el);
   const box=el.parentElement,cx=pl+sel*bw+bw/2;SCR1(box,cx,bw);
 }
@@ -1489,7 +1489,7 @@ function drawDebt(rows){
     if(seg)s+=`<clipPath id="dcl${i}"><path d="${barPath(x+bw*.22563,top,bw*.54874,Math.max(1,base-top),true)}"/></clipPath><g class="grow" style="--i:${i}" clip-path="url(#dcl${i})">${seg}</g>`;
     const done=r.left<0.5;
     s+=`<text class="cv" data-v="${done?0:r.left}" x="${x+bw/2}" y="${(done?base:top)-8}" text-anchor="middle" style="${done?"fill:var(--surplus);font-weight:700":on?"fill:var(--ink);font-weight:700":""}">${done?"$0":fmt1(r.left)}</text>
-      <text class="cm" x="${x+bw/2}" y="${H-14}" text-anchor="middle" style="${on?"fill:var(--ink);font-weight:700":""}">${(i===0||r.M.m===0)?(r.M.y%100)+"년 ":""}${r.M.m+1}월말</text></g>`});
+      <text class="cm" x="${x+bw/2}" y="${H-14}" text-anchor="middle" style="${on?"fill:var(--ink);font-weight:700":""}">${(i===0||r.M.m===0)?(r.M.y%100)+"년 ":""}${r.M.m+1}월 말</text></g>`});
   const el=$("dchart"); el.setAttribute("viewBox",`0 0 ${W} ${H}`); el.setAttribute("width",W); el.setAttribute("height",H); el.innerHTML=GRID(y,0,max,W,pl,pr)+s;SELFX(el);
   const box=el.parentElement, cx=pl+sel*bw+bw/2;
   SCR1(box,cx,bw);
@@ -2350,7 +2350,7 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
       else{const bx=x+bw*.22563,bwd=bw*.54874,top=y(tot[i]),hh=Math.max(0,y0-top);let cy=y0;if(hh>0.5){s+=`<clipPath id="xc${el.id}${i}"><path d="${barPath(bx,top,bwd,hh,true)}"/></clipPath><g clip-path="url(#xc${el.id}${i})">`;series.forEach(se=>{const v=Math.max(0,se.vals[i]);const h=y0-y(v);if(h<=0)return;cy-=h;s+=`<rect x="${bx}" y="${cy}" width="${bwd}" height="${h}" fill="${se.color}"><title>${se.name} ${fmt1(v)}</title></rect>`});s+=`</g>`}lblY=top}
       s+=`</g>`;const neg=lbl<0,ty=spec.mode==="signed"&&neg?lblY:lblY-8;
       s+=`<text class="cv" data-v="${lbl}" x="${x+bw/2}" y="${ty}" text-anchor="middle" style="fill:${on?(neg?"var(--warn)":"var(--ink)"):"var(--muted)"};${on?"font-weight:700":""}">${spec.mode==="pair"?(lbl>0?"+":"")+fmt1(lbl):fmt1(lbl)}</text>`;
-      s+=`<text class="cm" x="${x+bw/2}" y="${H-14}" text-anchor="middle" style="${on?"fill:var(--ink);font-weight:700":""}">${spec.end?((i===0||r.M.m===0)?(r.M.y%100)+"년 ":"")+(r.M.m+1)+"월말":mLbl(r,i)}</text></g>`});
+      s+=`<text class="cm" x="${x+bw/2}" y="${H-14}" text-anchor="middle" style="${on?"fill:var(--ink);font-weight:700":""}">${spec.end?((i===0||r.M.m===0)?(r.M.y%100)+"년 ":"")+(r.M.m+1)+"월 말":mLbl(r,i)}</text></g>`});
     el.setAttribute("viewBox",`0 0 ${W} ${H}`);el.setAttribute("width",W);el.setAttribute("height",H);el.innerHTML=GRID(y,min,max,W,pl,pr)+s;SELFX(el);
     const box=el.parentElement,cx=pl+sel*bw+bw/2;SCR1(box,cx,bw)};
   const anchor=document.getElementById("achart")&&document.getElementById("achart").closest("section.trendsec");if(!anchor)return;
