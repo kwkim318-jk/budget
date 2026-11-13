@@ -2233,7 +2233,7 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
     (S.loans||[]).forEach((l,i)=>{let b=num(l.bal);const pm=num(l.pmt);if(b<=0.5||pm<=0)return;const k="loan:"+i,A=anc("loans",k);if(!A||A>=T0)return;pastMo(A,l.day).forEach(d=>{if(b<=0.5)return;if(l.skipM&&l.skipM===ymS(d))return;const pay=Math.min(pm,b);b=b-pay;L.push({k,sec:"cards",t:"loan",i,d,label:(l.name||"대출")+" 상환",amt:-pay})})});
     return L.sort((a,b)=>a.d-b.d)};
   // 반영: rs = 반영할 행들, sk = 미반영 표시된 행 번호, ed = 수정 금액
-  const apply_=(L,sk,ed,full)=>{const val=(x,n)=>ed&&ed.has(n)?ed.get(n):x.amt;
+  const apply_=(L,sk,ed,full)=>{const val=(x,n)=>ed&&ed.has(n)?ed.get(n):x.amt;const RID=Date.now().toString(36);
     const run=T=>{if(!T)return;let tot=0;const ap=T.applied=T.applied||{};const lb={};
       L.forEach((x,n)=>{const skip=sk&&sk.has(n),v=skip?0:val(x,n);if(x.t!=="one"||x.amt)tot+=v;
         if(x.t==="card"&&!skip&&T.cards[x.i])T.cards[x.i].bal=Math.max(0,Math.round((num(T.cards[x.i].bal)+v)*100)/100);
@@ -2241,6 +2241,7 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
         if(x.t==="one"&&T.oneoffs[x.i]){if(skip)ap[x.k]=T.oneoffs[x.i].date;else{T.oneoffs[x.i].amt=0;T.oneoffs[x.i].date=""}}
         else ap[x.k]=iso(T0)});
       tot=Math.round(tot*100)/100;
+      {const lg=L.map((x,n)=>({x,v:sk&&sk.has(n)?0:val(x,n)})).filter(o=>o.v&&Math.abs(o.v)>=0.005).map((o,n)=>({id:RID+"-"+n,d:iso(o.x.d),src:"roll",label:o.x.label,amt:o.x.t==="card"?0:Math.round(o.v*100)/100,card:o.x.t==="card"}));T.log=(T.log||[]).concat(lg)}
       if(Array.isArray(T.accounts)&&T.accounts.length){T.accounts[0].bal=Math.round((num(T.accounts[0].bal)+tot)*100)/100;T.bank=Math.round(T.accounts.reduce((a,c)=>a+num(c.bal),0)*100)/100}else T.bank=Math.round((num(T.bank)+tot)*100)/100;
       // 반영하면 "이번 달 … 이미 냄" 표시 초기화
       L.forEach(x=>{if(x.t==="loan"&&T.loans[x.i])T.loans[x.i].skipM=""});
@@ -2283,7 +2284,8 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
     if(p[0]==="ess")return [`#grpBody [data-list="esssub"][data-i="${p[1]}"][data-j="${p[2]}"][data-f="name"]`,`#grpBody [data-list="ess"][data-i="${p[1]}"][data-f="name"]`,"ess:"+p[1]+":"];
     if(p[0]==="alloc")return [`#grpBody [data-list="allocsub"][data-i="${p[1]}"][data-j="${p[2]}"][data-f="name"]`,`#grpBody [data-list="alloc"][data-i="${p[1]}"]`,"alloc:"+p[1]+":"];
     return [`#grpBody [data-list="${m[p[0]]}"][data-i="${p[1]}"][data-f="name"]`,null,null]};
-  const mark=()=>{const L=rows();document.querySelectorAll("#grpBody .rbadge,#grpBody .rkey,#grpBody .nkey").forEach(e=>e.remove());
+  const firstOcc=(kind,x)=>{try{if(kind==="ess")return occ(x.freq||"mo",x.day,x.date)[0]||null;if(kind==="alloc")return ((x.freq||"mo")==="mo"?occ("mo",x.day||1):occ(x.freq,null,x.date||iso(nextWd(x.wd??5))))[0]||null;let p=pd(x.date);if(!p)return null;const day=p.getDate(),f=x.freq||"bi";let g=0;while(p<T0&&g++<500)p=stepDate(p,f,day);return p}catch(_){return null}};
+  const mark=()=>{const L=rows();document.querySelectorAll("#grpBody .rbadge,#grpBody .rkey,#grpBody .nkey,#grpBody .pchk").forEach(e=>e.remove());
     const secs=new Set(L.map(x=>x.sec));let any=L.length>0;
     document.querySelectorAll("#grpBody .upd-at").forEach(el=>{const n=secs.has(el.dataset.at);el.classList.toggle("need",n);if(n&&!/업데이트 필요/.test(el.textContent))el.textContent=(el.textContent?el.textContent.replace(/ 업데이트$/,"")+" · ":"")+"업데이트 필요"});
     document.querySelectorAll("#nbar,#gearBtn").forEach(b=>b.classList.toggle("need",any));
@@ -2294,9 +2296,14 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
     (S.ess||[]).forEach((e,i)=>(e.subs||[]).forEach((x,j)=>nk(`#grpBody [data-list="esssub"][data-i="${i}"][data-j="${j}"][data-f="name"]`,"ess:"+i+":"+j)));
     (S.alloc||[]).forEach((a,i)=>(a.subs||[]).forEach((x,j)=>nk(`#grpBody [data-list="allocsub"][data-i="${i}"][data-j="${j}"][data-f="name"]`,"alloc:"+i+":"+j)));
     [["incomes","inc"],["oneoffs","one"],["cards","card"],["loans","loan"],["plans","plan"]].forEach(([L2,p])=>(S[L2]||[]).forEach((_,i)=>nk(`#grpBody [data-list="${L2}"][data-i="${i}"][data-f="name"]`,p+":"+i)));
+    // 이번 회차 냄 체크: 지금 반영하면 자동 체크, 그 날짜가 지나면 저절로 풀림
+    const ck=(q,key,x,first,mo)=>{const el=document.querySelector(q);if(!el||!first)return;const nkb=el.parentNode.querySelector(`.nkey[data-nkey="${key}"]`);const on=(x.pdL||[]).includes(iso(first));const lb=document.createElement("label");lb.className="pchk"+(on?" on":"");lb.innerHTML=`<input type="checkbox" data-pchk="${key}" ${on?"checked":""}><span>${mo?(first.getMonth()+1)+"월분 냄":(first.getMonth()+1)+"/"+first.getDate()+"분 냄"}</span>`;el.parentNode.insertBefore(lb,nkb||el.nextSibling)};
+    (S.ess||[]).forEach((e,i)=>(e.subs||[]).forEach((x,j)=>ck(`#grpBody [data-list="esssub"][data-i="${i}"][data-j="${j}"][data-f="name"]`,"ess:"+i+":"+j,x,firstOcc("ess",x),(x.freq||"mo")==="mo")));
+    (S.alloc||[]).forEach((a,i)=>(a.subs||[]).forEach((x,j)=>ck(`#grpBody [data-list="allocsub"][data-i="${i}"][data-j="${j}"][data-f="name"]`,"alloc:"+i+":"+j,x,firstOcc("alloc",x),(x.freq||"mo")==="mo")));
+    (S.incomes||[]).forEach((x,i)=>ck(`#grpBody [data-list="incomes"][data-i="${i}"][data-f="name"]`,"inc:"+i,x,firstOcc("inc",x),(x.freq||"bi")==="mo"));
     // 목표·여가비 세부항목: 이름 줄 안에 배지·반영·지금 반영 같이 놓기
     document.querySelectorAll('#grpBody .aitem > .ai-n').forEach(n=>{const it=n.parentElement;let w=it.querySelector(":scope > .ai-nw");if(!w){w=document.createElement("span");w.className="ai-nw";it.insertBefore(w,n)}
-      const mv=[...it.querySelectorAll(":scope > .rbadge")];mv.forEach(x=>w.appendChild(x));w.appendChild(n);{const c=(window.__mc=window.__mc||document.createElement("canvas").getContext("2d")),cs=getComputedStyle(n);c.font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;n.style.width=Math.ceil(c.measureText(n.value||" ").width+parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+4)+"px"}[...it.querySelectorAll(":scope > .rkey,:scope > .nkey")].forEach(x=>w.appendChild(x))});
+      const mv=[...it.querySelectorAll(":scope > .rbadge")];mv.forEach(x=>w.appendChild(x));w.appendChild(n);{const c=(window.__mc=window.__mc||document.createElement("canvas").getContext("2d")),cs=getComputedStyle(n);c.font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;n.style.width=Math.ceil(c.measureText(n.value||" ").width+parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+4)+"px"}[...it.querySelectorAll(":scope > .rkey,:scope > .pchk,:scope > .nkey")].forEach(x=>w.appendChild(x))});
     const n=L.length;btn.hidden=!n||(document.body.dataset.dtab!=="inputs");btn.textContent=`지난 내역 ${n}건 반영`;
     document.querySelectorAll('#grpBody input[type=date],#grpBody input[type=month]').forEach(i=>{i.required=true})};
   document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#grpBody .rkey");if(!b)return;e.preventDefault();e.stopPropagation();const k=b.dataset.rkey;const L=rows().filter(x=>k.endsWith(":")?x.k.startsWith(k):x.k===k);if(L.length)apply_(L,null,null,false)},true);
@@ -2305,21 +2312,46 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
   const bankAdd=(T,v)=>{if(Array.isArray(T.accounts)&&T.accounts.length){T.accounts[0].bal=Math.round((num(T.accounts[0].bal)+v)*100)/100;T.bank=Math.round(T.accounts.reduce((a,c)=>a+num(c.bal),0)*100)/100}else T.bank=Math.round((num(T.bank)+v)*100)/100};
   const r2=v=>Math.round(v*100)/100;
   const incNext=inc=>{let p=pd(inc.date);if(!p)return null;const day=p.getDate(),f=inc.freq||"bi";let g=0;while(p<T0&&g++<500)p=stepDate(p,f,day);while((inc.pdL||[]).includes(iso(p))&&g++<1000)p=stepDate(p,f,day);return p};
-  const payNow=k=>{const p=k.split(":"),kind=p[0],i=+p[1],j=+p[2];const snap={s:JSON.parse(JSON.stringify(S)),d:(typeof D!=="undefined"&&D&&D!==S)?JSON.parse(JSON.stringify(D)):null};const b0=JSON.stringify(S);
-    const run=T=>{if(!T)return;
-      if(kind==="ess"||kind==="alloc"){const g=kind==="ess"?T.ess[i]:T.alloc[i];const x=g&&g.subs&&g.subs[j];if(!x)return;const d=nextOcc(kind,g,x);if(!d)return;const v=kind==="ess"?num(x.v):subVAt(g,x,ymKey(d));if(!(v>0))return;const how=x.how||"bank";
-        if(how.startsWith("card:")){const c=(T.cards||[]).find(c=>c.id===how.slice(5));if(c)c.bal=r2(num(c.bal)+v)}else bankAdd(T,-v);
-        x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([iso(d)]);return}
-      if(kind==="inc"){const x=T.incomes[i];if(!x)return;const a=num(x.amt),d=incNext(x);if(!d||!(a>0))return;bankAdd(T,a);x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([iso(d)]);return}
-      if(kind==="one"){const o=T.oneoffs[i];if(!o)return;const a=num(o.amt);if(!a)return;bankAdd(T,o.dir==="in"?a:-a);o.amt=0;o.date="";return}
-      if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;bankAdd(T,-b);c.bal=0;return}
-      if(kind==="loan"){const l=T.loans[i];if(!l)return;const b=num(l.bal),pm=num(l.pmt);if(!(b>0)||!(pm>0))return;const pay=Math.min(pm,b);bankAdd(T,-pay);l.bal=r2(b-pay);const nx=ymS(nextOn(dayOf(l.day)));if(!l.skipM||l.skipM<nx)l.skipM=nx;return}
-      if(kind==="plan"){const q=T.plans[i];if(!q)return;const b=num(q.bal),n=Math.max(0,Math.round(num(q.n)));if(!(b>0))return;const per=q.payoff||n<=1?b:r2(b/n);bankAdd(T,-per);q.bal=r2(b-per);if(!q.payoff)q.n=Math.max(0,n-1);q.asOf=iso(T0);q.skip=true;return}};
+  const LID=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const bankTot=T=>Array.isArray(T.accounts)&&T.accounts.length?r2(T.accounts.reduce((a,c)=>a+num(c.bal),0)):r2(num(T.bank));
+  const pick=(o,fs)=>{const r={};fs.forEach(f=>r[f]=o[f]===undefined?null:JSON.parse(JSON.stringify(o[f])));return r};
+  const nmOf=(a,b)=>!b||b===a?a:a+" · "+b;
+  window.__pnInfo=k=>{const p=k.split(":"),kind=p[0],i=+p[1],j=+p[2],T=S;try{
+    if(kind==="ess"||kind==="alloc"){const g=kind==="ess"?T.ess[i]:T.alloc[i],x=g.subs[j];const d=nextOcc(kind,g,x);return {name:nmOf(g.name,x.name),d,rec:true}}
+    if(kind==="inc"){const x=T.incomes[i];return {name:x.name,d:incNext(x),rec:true}}
+    if(kind==="one"){const o=T.oneoffs[i];return {name:o.name,d:pd(o.date),rec:false}}
+    if(kind==="card"){const c=T.cards[i];return {name:c.name,d:nextOn(dayOf(c.day)),rec:true}}
+    if(kind==="loan"){const l=T.loans[i];return {name:l.name,d:nextOn(dayOf(l.day)),rec:true}}
+    if(kind==="plan"){const q=T.plans[i];return {name:q.name,d:nextOn(dayOf(q.day)),rec:true}}}catch(_){}return null};
+  const payNow=(k,P,shift)=>{const p=k.split(":"),kind=p[0],i=+p[1],j=+p[2];P=P||T0;const snap={s:JSON.parse(JSON.stringify(S)),d:(typeof D!=="undefined"&&D&&D!==S)?JSON.parse(JSON.stringify(D)):null};const b0=JSON.stringify(S);const id=LID();const PD=P.getDate(),PI=iso(P);
+    const run=T=>{if(!T)return;const B0=bankTot(T);let ent=null;
+      if(kind==="ess"||kind==="alloc"){const g=kind==="ess"?T.ess[i]:T.alloc[i];const x=g&&g.subs&&g.subs[j];if(!x)return;const d=nextOcc(kind,g,x);if(!d)return;const v=kind==="ess"?num(x.v):subVAt(g,x,ymKey(d));if(!(v>0))return;const how=x.how||"bank";const before=pick(x,["pdL","day","date"]);let cb=null;
+        if(how.startsWith("card:")){const c=(T.cards||[]).find(c=>c.id===how.slice(5));if(c){cb={id:c.id,v};c.bal=r2(num(c.bal)+v)}}else bankAdd(T,-v);
+        let pdq=iso(d);if(shift){const mo=(x.freq||"mo")==="mo";if(mo)x.day=PD;else x.date=PI;pdq=PI}
+        x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:nmOf(g.name,x.name),amt:how.startsWith("card:")?-v:-v,card:!!cb,rev:{list:kind,i,j,name:x.name,before,cb,pdq}}}
+      else if(kind==="inc"){const x=T.incomes[i];if(!x)return;const a=num(x.amt),d=incNext(x);if(!d||!(a>0))return;const before=pick(x,["pdL","date"]);bankAdd(T,a);let pdq=iso(d);if(shift){x.date=PI;pdq=PI}x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:x.name,amt:a,rev:{list:"incomes",i,name:x.name,before,pdq}}}
+      else if(kind==="one"){const o=T.oneoffs[i];if(!o)return;const a=num(o.amt);if(!a)return;const before=pick(o,["amt","date"]);const v=o.dir==="in"?a:-a;bankAdd(T,v);o.amt=0;o.date="";ent={label:o.name,amt:v,rev:{list:"oneoffs",i,name:o.name,before}}}
+      else if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;const before=pick(c,["bal","day"]);bankAdd(T,-b);c.bal=0;if(shift)c.day=PD;ent={label:c.name,amt:-b,rev:{list:"cards",i,name:c.name,before}}}
+      else if(kind==="loan"){const l=T.loans[i];if(!l)return;const b=num(l.bal),pm=num(l.pmt);if(!(b>0)||!(pm>0))return;const before=pick(l,["bal","skipM","day"]);const pay=Math.min(pm,b);bankAdd(T,-pay);l.bal=r2(b-pay);if(shift){l.day=PD;l.skipM=ymS(P)}else{const nx=ymS(nextOn(dayOf(l.day)));if(!l.skipM||l.skipM<nx)l.skipM=nx}ent={label:l.name,amt:-pay,rev:{list:"loans",i,name:l.name,before}}}
+      else if(kind==="plan"){const q=T.plans[i];if(!q)return;const b=num(q.bal),n=Math.max(0,Math.round(num(q.n)));if(!(b>0))return;const before=pick(q,["bal","n","skip","asOf","day"]);const per=q.payoff||n<=1?b:r2(b/n);bankAdd(T,-per);q.bal=r2(b-per);if(!q.payoff)q.n=Math.max(0,n-1);if(shift)q.day=PD;q.asOf=iso(T0);q.skip=true;ent={label:q.name,amt:-per,rev:{list:"plans",i,name:q.name,before}}}
+      if(ent){ent.bankD=r2(bankTot(T)-B0);T.log=(T.log||[]).concat([Object.assign({id,d:PI,src:"now",bal:bankTot(T)},ent)])}};
     run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);if(JSON.stringify(S)===b0)return;changed(true);undoShow(snap)};
-  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#grpBody .nkey");if(!b)return;e.preventDefault();e.stopPropagation();payNow(b.dataset.nkey)},true);
+  window.__payNow=payNow;
+  // 기록 취소: 지금 반영으로 바뀐 값만 되돌림
+  window.__logCancel=id=>{const run=T=>{if(!T||!T.log)return;const e=T.log.find(x=>x.id===id);if(!e)return;const r=e.rev;
+      if(r){let o=null;if(r.list==="ess"||r.list==="alloc"){const g=(r.list==="ess"?T.ess:T.alloc)[r.i];o=g&&g.subs&&g.subs[r.j]}else o=(T[r.list]||[])[r.i];
+        if(o&&o.name===r.name)Object.entries(r.before).forEach(([f,v])=>{if(v===null)delete o[f];else o[f]=v});
+        if(r.cb){const c=(T.cards||[]).find(c=>c.id===r.cb.id);if(c)c.bal=r2(Math.max(0,num(c.bal)-r.cb.v))}}
+      if(e.bankD)bankAdd(T,-e.bankD);T.log=T.log.filter(x=>x.id!==id)};
+    run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);changed(true)};
+  document.addEventListener("change",e=>{const c=e.target;if(!c.matches||!c.matches("#grpBody input[data-pchk]"))return;e.stopPropagation();const p=c.dataset.pchk.split(":"),kind=p[0],i=+p[1],j=+p[2];const get=T=>kind==="inc"?(T.incomes||[])[i]:(((kind==="ess"?T.ess:T.alloc)||[])[i]||{subs:[]}).subs[j];const x0=get(S);if(!x0)return;const f=firstOcc(kind,x0);if(!f)return;const q=iso(f);
+    if(!c.checked){const le=(S.log||[]).find(e=>e.src==="now"&&e.rev&&e.rev.pdq===q&&e.rev.i===i&&(kind==="inc"?e.rev.list==="incomes":(e.rev.list===kind&&e.rev.j===j)));if(le){window.__logCancel(le.id);return}}
+    const run=T=>{if(!T)return;const x=get(T);if(!x)return;const L=(x.pdL||[]).filter(v=>v!==q);if(c.checked)L.push(q);if(L.length)x.pdL=L;else delete x.pdL};run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);changed(true)},true);
+  window.__logEdit=(id,f)=>{const run=T=>{if(!T||!T.log)return;const e=T.log.find(x=>x.id===id);if(!e)return;if(f===null)T.log=T.log.filter(x=>x.id!==id);else Object.assign(e,f)};run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);changed(true)};
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#grpBody .nkey");if(!b)return;e.preventDefault();e.stopPropagation();if(window.__pnOpen)window.__pnOpen(b.dataset.nkey);else payNow(b.dataset.nkey)},true);
   const _r=render;render=function(){const x=_r.apply(this,arguments);try{mark()}catch(e){console.warn(e)}return x};try{mark()}catch(_){}
   new MutationObserver(()=>{try{mark()}catch(_){}}).observe(document.body,{attributes:true,attributeFilter:["data-dtab"]});
-  {let q=0;const own=n=>n.nodeType===1&&(n.classList.contains("rbadge")||n.classList.contains("rkey")||n.classList.contains("nkey"));const gb=document.getElementById("grpBody");
+  {let q=0;const own=n=>n.nodeType===1&&(n.classList.contains("rbadge")||n.classList.contains("rkey")||n.classList.contains("nkey")||n.classList.contains("pchk"));const gb=document.getElementById("grpBody");
    if(gb)new MutationObserver(ms=>{if(ms.every(m=>[...m.addedNodes,...m.removedNodes].every(own)))return;if(q)return;q=requestAnimationFrame(()=>{q=0;try{mark()}catch(_){}})}).observe(gb,{childList:true,subtree:true})}
   window.__rollRows=rows})();
 
@@ -2553,6 +2585,41 @@ body .tile:not(.tlift):not([aria-pressed="true"]):not(.tinv):not(#_),body :is(.c
 .chart .cm:not(#_){font-size:11px!important;font-variant-numeric:proportional-nums;font-feature-settings:"tnum" 0}
 .chart .cm .ten{letter-spacing:-.06em}
 .num,.money input,.cat-tot{font-variant-numeric:tabular-nums}
+/* 이번 회차 냄 체크 */
+.pchk{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap;cursor:pointer;flex:0 0 auto}
+.pchk input{width:14px;height:14px;margin:0;accent-color:var(--accent)}
+.pchk.on{color:var(--accent);font-weight:600}
+.pchk + .nkey{margin-left:6px!important}
+.pchk.on + .nkey{display:none!important}
+/* 지금 반영 날짜 시트 · 반영 기록 */
+#pnSheet{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center}
+#pnSheet[hidden]{display:none}
+#pnSheet .pn-bg{position:absolute;inset:0;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+#pnSheet .pn-in{position:relative;width:min(100%,430px);box-sizing:border-box;margin:0 10px calc(env(safe-area-inset-bottom,0px) + 14px);padding:18px 18px 16px;border-radius:24px;background:color-mix(in srgb,var(--surface) 82%,transparent);-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:0 20px 50px -12px rgba(0,0,0,.35),inset 0 1px 0 var(--glass-hi),inset 0 0 0 1px var(--glass-edge)}
+#pnSheet .pn-t{font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+#pnSheet .pn-s{margin-top:3px;font-size:12px;color:var(--muted)}
+#pnSheet .pn-f{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;font-size:14px;color:var(--ink)}
+#pnSheet .pn-f input{font:inherit;font-size:15px;height:40px;padding:0 12px;border:0;border-radius:12px;background:var(--gf);box-shadow:inset 0 0 0 1px var(--gf-edge);color:var(--ink);min-width:160px}
+#pnSheet .pn-c{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;color:var(--ink)}
+#pnSheet .pn-c input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+#pnSheet .pn-b{display:flex;gap:8px;margin-top:16px}
+#pnSheet .pn-b button{flex:1;height:44px;border:0;border-radius:14px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;background:var(--gf);color:var(--ink);box-shadow:inset 0 0 0 1px var(--gf-edge)}
+#pnSheet .pn-b button.pri{background:var(--accent);color:var(--surface);box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+#pnSheet .pn-x{display:block;margin:12px auto 0;border:0;background:none;font:inherit;font-size:13px;color:var(--warn);cursor:pointer}
+#logbox{margin:0 0 12px;padding:6px 16px;border-radius:20px;background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);box-shadow:var(--glass-sh),inset 0 1px 0 var(--glass-hi),inset 0 0 0 1px var(--glass-edge)}
+#logbox[hidden]{display:none}
+#logbox .lg-h{display:flex;justify-content:space-between;align-items:center;padding:10px 0 8px;font-size:13px;font-weight:600;color:var(--ink)}
+#logbox .lg-h span:last-child{font-weight:400;color:var(--muted);font-size:12px}
+#logbox .lg-r{display:flex;align-items:center;gap:10px;width:100%;padding:9px 0;border:0;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);background:none;font:inherit;font-size:13px;color:var(--ink);text-align:left;cursor:pointer}
+#logbox .lg-d{flex:0 0 38px;color:var(--muted);font-variant-numeric:tabular-nums}
+#logbox .lg-l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#logbox .lg-a{flex:0 0 auto;font-variant-numeric:tabular-nums;font-weight:600}
+#logbox .lg-a.pos{color:var(--surplus)}
+#logbox .lg-a.card{color:var(--muted);font-weight:400}
+#logbox details{border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+#logbox summary{padding:9px 0;font-size:12px;color:var(--muted);cursor:pointer;list-style:none}
+#logbox summary::-webkit-details-marker{display:none}
+#grpBody input[type=date]:not(#_){padding-right:23px!important;background-position:right 5px center!important;background-size:14px 14px!important}
 </style>
 <script>
 (()=>{const SEL=".row,.aitem,.sitem,.cat";const sig=e=>[...e.querySelectorAll("input,select")].map(x=>x.value).join("|")+"#"+e.textContent.trim().slice(0,40);
@@ -2564,4 +2631,21 @@ document.addEventListener("change",ev=>{const t=ev.target;if(!t.closest||!t.clos
 <script>
 (()=>{const NS="http://www.w3.org/2000/svg";let q=0;const fix=()=>{q=0;document.querySelectorAll(".chart text.cm").forEach(t=>{if(t.querySelector(".ten"))return;const s=t.textContent,m=/1(?=\d월)/.exec(s);if(!m)return;t.textContent="";t.append(document.createTextNode(s.slice(0,m.index)));const sp=document.createElementNS(NS,"tspan");sp.setAttribute("class","ten");sp.textContent=m[0];t.append(sp,document.createTextNode(s.slice(m.index+1)))})};
 new MutationObserver(()=>{if(!q)q=requestAnimationFrame(fix)}).observe(document.body,{childList:true,subtree:true});fix()})();
+</script>
+<script>
+(()=>{const $i=id=>document.getElementById(id);const md2=d=>(d.getMonth()+1)+"/"+d.getDate();
+  const sh=document.createElement("div");sh.id="pnSheet";sh.hidden=true;sh.innerHTML=`<div class="pn-bg" data-pn="x"></div><div class="pn-in" role="dialog" aria-modal="true"><div class="pn-t" id="pnT"></div><div class="pn-s" id="pnS"></div><label class="pn-f"><span>날짜</span><input type="date" id="pnDate" required></label><label class="pn-c" id="pnShiftRow"><input type="checkbox" id="pnShift"><span>이후 일정도 변경</span></label><div class="pn-b"><button type="button" data-pn="x">취소</button><button type="button" class="pri" data-pn="ok" id="pnOk">반영</button></div><button type="button" class="pn-x" data-pn="del" id="pnDel" hidden></button></div>`;document.body.appendChild(sh);
+  let M=null;const close=()=>{sh.hidden=true;M=null};
+  window.__pnOpen=k=>{const info=window.__pnInfo&&window.__pnInfo(k);if(!info){window.__payNow(k);return}M={mode:"pay",k};$i("pnT").textContent=info.name||"";$i("pnS").textContent=info.d?"예정 "+md2(info.d):"";$i("pnDate").value=iso(T0);$i("pnDate").max=iso(T0);$i("pnShift").checked=false;$i("pnShiftRow").hidden=!info.rec;$i("pnOk").textContent="반영";$i("pnDel").hidden=true;sh.hidden=false};
+  const openLog=id=>{const e=(S.log||[]).find(x=>x.id===id);if(!e)return;M={mode:"log",id};$i("pnT").textContent=e.label||"";$i("pnS").textContent=(e.card?"카드 ":"")+(e.amt>0?"+":"")+fmt(e.amt||0)+(e.src==="now"?" · 지금 반영":" · 지난 내역 반영");$i("pnDate").value=e.d;$i("pnDate").max="";$i("pnShiftRow").hidden=true;$i("pnOk").textContent="저장";const dl=$i("pnDel");dl.hidden=false;dl.textContent=e.src==="now"&&e.rev?"반영 취소":"기록 삭제";sh.hidden=false};
+  sh.addEventListener("click",ev=>{const b=ev.target.closest("[data-pn]");if(!b||!M)return;const a=b.dataset.pn;if(a==="x"){close();return}
+    if(a==="ok"){const v=$i("pnDate").value,P=pd(v);if(!P)return;const m=M;close();if(m.mode==="pay")window.__payNow(m.k,P,$i("pnShift").checked);else window.__logEdit(m.id,{d:v});return}
+    if(a==="del"){const m=M;const e=(S.log||[]).find(x=>x.id===m.id);close();if(!e)return;if(e.src==="now"&&e.rev)window.__logCancel(m.id);else window.__logEdit(m.id,null)}});
+  // 반영 기록 (Cash Flow 탭)
+  let box=null;const row=e=>{const d=pd(e.d);return `<button type="button" class="lg-r" data-lid="${esc(e.id)}"><span class="lg-d">${d?md2(d):""}</span><span class="lg-l">${esc(e.label||"")}</span><span class="lg-a ${e.card?"card":e.amt>0?"pos":""}">${e.card?"카드 ":""}${e.amt>0?"+":""}${fmt(e.amt||0)}</span></button>`};
+  const draw=()=>{const fb=document.querySelector(".flowbox");if(!fb)return;if(!box){box=document.createElement("div");box.id="logbox";fb.parentNode.insertBefore(box,fb);box.addEventListener("click",ev=>{const r=ev.target.closest(".lg-r");if(r)openLog(r.dataset.lid)})}
+    const L=(S.log||[]).slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);if(!L.length){box.hidden=true;box.innerHTML="";return}box.hidden=false;const cur=ymS(T0);const by={};L.forEach(e=>{const k=(e.d||"").slice(0,7);(by[k]=by[k]||[]).push(e)});const ks=Object.keys(by).sort().reverse();const open=new Set([...box.querySelectorAll("details[open]")].map(d=>d.dataset.k));
+    box.innerHTML=`<div class="lg-h"><span>반영 기록</span><span>${L.length}건</span></div>`+ks.map(k=>k===cur?by[k].map(row).join(""):`<details data-k="${k}" ${open.has(k)?"open":""}><summary>${+k.slice(2,4)}년 ${+k.slice(5,7)}월 · ${by[k].length}건</summary>${by[k].map(row).join("")}</details>`).join("")};
+  const _r=render;render=function(){const x=_r.apply(this,arguments);try{draw()}catch(e){console.warn(e)}return x};try{draw()}catch(_){}
+})();
 </script>
