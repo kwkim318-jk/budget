@@ -985,7 +985,7 @@ const catM=e=>(e.subs||[]).reduce((a,x)=>a+meq(x.v,x.freq||"mo"),0);
 function normEss(list){return (list||[]).map(e=>{const o={name:e.name||"카테고리"};
   const base={how:e.how||"bank",freq:e.freq||"mo",day:e.day,date:e.date};
   o.subs=(e.subs&&e.subs.length?e.subs:[{name:e.name,v:e.v}]).map(x=>{const y={name:x.name,v:num(x.v),how:x.how||base.how,freq:x.freq||base.freq};
-    const d=x.day??base.day, dt=x.date||base.date; if(d!=null&&d!=="")y.day=dayOf(d); if(dt)y.date=dt; return y});
+    const d=x.day??base.day, dt=x.date||base.date; if(d!=null&&d!=="")y.day=dayOf(d); if(dt)y.date=dt; if(Array.isArray(x.pdL)&&x.pdL.length)y.pdL=x.pdL.slice(); return y});
   o.v=Math.round(catM(o)*100)/100; return o})}
 function schedTxt(x,cards){const c=linkedCard(x,cards);const f=x.freq||"mo";
   let w;if(f==="mo"){const d=dayOf(x.day);w=c?"매월":`매월 ${d===31?"말일":d+"일"}`}
