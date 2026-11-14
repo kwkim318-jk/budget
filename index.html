@@ -1037,12 +1037,11 @@ function simulate(){
     S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const lc=linkedCard(x);if(!lc||lc.id!==id)return;const v=num(x.v);if(v<=0)return;const f=x.freq||"mo";let n=0;
       if(f==="mo"){const d=onDay(Y,Mo,dayOf(x.day));if(d>=M1&&d<T0)n=1}else{let p=pd(x.date);if(p){const dd=p.getDate();let g=0;while(p<M1&&g++<600)p=stepDate(p,f,dd);while(p<T0&&g++<900){n++;p=stepDate(p,f,dd)}}}
       if(!n)return;const t=v*n;o.sum+=t;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+t;const k=e.name+"\u0001"+(x.name||e.name);o.subs[k]=(o.subs[k]||0)+t}));return o};
-  S.cards.forEach(c=>{const pc=pastCard(c.id);if(pc.sum<=0.005)return;const b=(CB[c.id]=CB[c.id]||{});const o=(b[CUR]=b[CUR]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=pc.sum;pc.names.forEach(n=>o.names.add(n));Object.entries(pc.cats).forEach(([k,v])=>o.cats[k]=(o.cats[k]||0)+v);Object.entries(pc.subs).forEach(([k,v])=>o.subs[k]=(o.subs[k]||0)+v)});
   const sim=(list,kind)=>list.forEach((l,i)=>{
     let b=num(l.bal); const full=kind==="cards", r=full?0:num(l.rate)/100/12, pm=full?b:num(l.pmt); const day=dayOf(l.day); let d=nextOn(day); if(kind==="loans"&&l.skipM&&l.skipM===ymS(d))d=addMonthKeep(d,day); const it={kind,i,start:b,steps:[],end:b<1?"done":null,next:b>=1&&pm>0?d:null};
     if(pm>0){ let guard=0;
       while(d<=HORIZON&&b>0.5&&guard++<60){const pay=Math.min(pm,b);b=(b-pay)*(1+r);
-        if(d>=T0){if(full){let amt=pay;if(guard===1){const pc=pastCard(l.id);amt=Math.max(0,pay-pc.sum)}if(amt>0.005)push(d,l.name+" 카드값",-amt,"ess",{ecat:"카드값",esub:l.name,kind,dname:l.name})}else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
+        if(d>=T0){if(full){let ex={ecat:"카드값",esub:l.name,kind,dname:l.name};if(guard===1){const pc=pastCard(l.id);if(pc.sum>0.005){const sc=pc.sum>pay?pay/pc.sum:1,cats={},subs={};Object.entries(pc.cats).forEach(([c,v])=>cats[c]=v*sc);Object.entries(pc.subs).forEach(([c,v])=>subs[c]=v*sc);const rest=pay-pc.sum*sc;if(rest>0.005){cats["카드값"]=rest;subs["카드값\u0001"+l.name]=rest}ex={ecats:cats,esubs:subs,kind,dname:l.name}}}push(d,l.name+" 카드값",-pay,"ess",ex)}else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
         if(b<=0.5&&!it.end)it.end=d; d=addMonthKeep(d,day);}
     }
     items.push(it);
