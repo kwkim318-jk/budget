@@ -1022,7 +1022,7 @@ function simulate(){
   const CB={}; // card spending by card id -> month key -> {amt,names}
   S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const v=num(x.v);if(v<=0)return;const lc=linkedCard(x),isCard=(x.how||"bank")!=="bank",tag=isCard&&!lc?" (카드값)":"";
     occ(x.freq||"mo",x.day,x.date).filter(d=>!(x.pdL||[]).includes(iso(d))).forEach(d=>{const k=ymKey(d);
-      if(lc){if(k<=CUR)return;const b=(CB[lc.id]=CB[lc.id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=v;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+v;const sk=e.name+"\u0001"+(x.name||e.name);o.subs[sk]=(o.subs[sk]||0)+v;return}
+      if(lc){if(k<CUR||(k===CUR&&d<T0))return;const b=(CB[lc.id]=CB[lc.id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=v;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+v;const sk=e.name+"\u0001"+(x.name||e.name);o.subs[sk]=(o.subs[sk]||0)+v;return}
       if(isCard&&k===CUR)return;push(d,`${x.name===e.name?e.name:e.name+" · "+x.name}${tag}`,-v,"ess",{ecat:e.name,esub:x.name||e.name})})}));
   // goals / fun paid from bank or card
   const CBA={};
@@ -1030,13 +1030,13 @@ function simulate(){
     const f=x.freq||"mo";const ds=f==="mo"?occ("mo",x.day||1):occ(f,null,x.date||iso(nextWd(x.wd??5)));
     ds.filter(d=>!(x.pdL||[]).includes(iso(d))).forEach(d=>{const k=ymKey(d);if(!activeAt(a,k))return;const v=subVAt(a,x,k);if(v<=0)return;
       if(x.how==="bank"){push(d,lbl,-v,"alloc",{});return}
-      const id=x.how.slice(5);if(k<=CUR)return;const b=(CBA[id]=CBA[id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set()});o.amt+=v;o.names.add(x.name)})}));
+      const id=x.how.slice(5);if(k<CUR||(k===CUR&&d<T0))return;const b=(CBA[id]=CBA[id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set()});o.amt+=v;o.names.add(x.name)})}));
   // loans & cards: balance with monthly interest
   const sim=(list,kind)=>list.forEach((l,i)=>{
     let b=num(l.bal); const full=kind==="cards", r=full?0:num(l.rate)/100/12, pm=full?b:num(l.pmt); const day=dayOf(l.day); let d=nextOn(day); if(kind==="loans"&&l.skipM&&l.skipM===ymS(d))d=addMonthKeep(d,day); const it={kind,i,start:b,steps:[],end:b<1?"done":null,next:b>=1&&pm>0?d:null};
     if(pm>0){ let guard=0;
       while(d<=HORIZON&&b>0.5&&guard++<60){const pay=Math.min(pm,b);b=(b-pay)*(1+r);
-        if(d>=T0){push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
+        if(d>=T0){if(full)push(d,l.name+" 카드값",-pay,"ess",{ecat:"카드값",esub:l.name,kind,dname:l.name});else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
         if(b<=0.5&&!it.end)it.end=d; d=addMonthKeep(d,day);}
     }
     items.push(it);
