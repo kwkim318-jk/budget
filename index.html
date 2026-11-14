@@ -1346,7 +1346,7 @@ function donutHead(){return `<div class="d-ctitle">차트</div>`}
 const essTot=()=>S.ess.reduce((a,e)=>a+catM(e),0);
 const funTot=()=>(S.alloc||[]).filter(a=>a.type==="fun").reduce((a,c)=>a+(c.subs||[]).reduce((q,x)=>q+num(x.v),0),0);
 function spendOf(m){
-  const ess=S.ess.map(e=>({name:e.name,v:m.essBy[e.name]||0})).filter(x=>x.v>0.005);
+  const ess=[...S.ess.map(e=>e.name),...Object.keys(m.essBy||{}).filter(k=>!S.ess.some(e=>e.name===k))].map(n=>({name:n,v:(m.essBy||{})[n]||0})).filter(x=>x.v>0.005);
   const essV=ess.reduce((a,x)=>a+x.v,0);
   return {ess,essV,total:essV+m.one+m.debtBy.plans+m.debtBy.loans+m.debtBy.cards};
 }
@@ -1371,7 +1371,7 @@ function donutFun(m){
   return donutHead()+(items.length?donutSVG(items,0,"","","여가비 비율",tot||1,0):'<p class="note">없음</p>');
 }
 function donutIncome(m){
-  const inc=m.inc, kids=S.ess.map(e=>({name:e.name,v:m.essBy[e.name]||0})).filter(x=>x.v>0.005);
+  const inc=m.inc, kids=[...S.ess.map(e=>e.name),...Object.keys(m.essBy||{}).filter(k=>!S.ess.some(e=>e.name===k))].map(n=>({name:n,v:(m.essBy||{})[n]||0})).filter(x=>x.v>0.005);
   const essV=kids.reduce((a,x)=>a+x.v,0), one=m.one, emerg=m.emergV, goal=m.goalV;
   const plans=m.debtBy.plans, loans=m.debtBy.loans, cards=m.debtBy.cards;
   const spend=essV+one+plans+loans+cards, save=emerg+goal, net=inc-spend-save;
