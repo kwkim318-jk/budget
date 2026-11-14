@@ -1093,7 +1093,9 @@ function compute(){
     (S.ess||[]).forEach(e=>(e.subs||[]).forEach(x=>{const v=num(x.v);if(v<=0||(x.how||"bank")!=="bank")return;const n=uni(past(x.freq||"mo",x.day,x.date),x.pdL).length;if(!n)return;const t=v*n;r.ess+=t;r.essBy[e.name]=(r.essBy[e.name]||0)+t;const o=(r.essSub[e.name]=r.essSub[e.name]||{}),sn=x.name||e.name;o[sn]=(o[sn]||0)+t}));
     const dAdd=(kind,nm,v)=>{r.debt+=v;r.debtBy[kind]=(r.debtBy[kind]||0)+v;const o=(r.debtIt[kind]=r.debtIt[kind]||{});o[nm]=(o[nm]||0)+v};
     (S.loans||[]).forEach(l=>{const pm=num(l.pmt);if(pm<=0)return;const d=onDay(Y,Mo,dayOf(l.day));if((d>=M1&&d<T0)||(l.skipM===CUR&&d>=T0))dAdd("loans",l.name,pm)});
-    (S.plans||[]).forEach(q=>{if(q.card&&(S.cards||[]).some(c=>c.id===q.card))return;const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0&&!(pd(q.asOf)&&pd(q.asOf)<=d))||(q.skip&&d>=T0))dAdd("plans",q.name,per)});
+    (S.plans||[]).forEach(q=>{if(q.card&&(S.cards||[]).some(c=>c.id===q.card))return;const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0)||(q.skip&&d>=T0))dAdd("plans",q.name,per)});
+    const CS=ymS(T0);(S.cards||[]).forEach(c=>{const v=num((c.pdM||{})[CS]);if(v<=0)return;r.ess+=v;r.essBy["카드값"]=(r.essBy["카드값"]||0)+v;const o=(r.essSub["카드값"]=r.essSub["카드값"]||{});o[c.name]=(o[c.name]||0)+v});
+    (S.oneoffs||[]).forEach(o=>{const d=pd(o.paidOn),v=num(o.paidAmt);if(!inCur(d)||!v)return;if(v>0){r.inc+=v;const nm=o.name||"일회성";r.incBy[nm]=(r.incBy[nm]||0)+v}else r.one+=-v});
     const full=t=>Math.round((S.alloc||[]).filter(a=>t.includes(a.type)&&activeAt(a,CUR)).reduce((q,a)=>q+allocVAt(a,CUR),0)*100)/100;
     r.emergV=full(["emerg"]);r.goalV=full(["goal","custom"]);r.funV=full(["fun"]);
     r.allow=r.inc-r.ess-r.debt-r.one-r.emergV-r.goalV;r.bal=r.allow-r.funV;r.saveV=Math.max(0,r.bal);r.full=true}}catch(_){}
@@ -2251,12 +2253,12 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
     (S.loans||[]).forEach((l,i)=>{let b=num(l.bal);const pm=num(l.pmt);if(b<=0.5||pm<=0)return;const k="loan:"+i,A=anc("loans",k);if(!A||A>=T0)return;pastMo(A,l.day).forEach(d=>{if(b<=0.5)return;if(l.skipM&&l.skipM===ymS(d))return;const pay=Math.min(pm,b);b=b-pay;L.push({k,sec:"cards",t:"loan",i,d,label:(l.name||"대출")+" 상환",amt:-pay})})});
     return L.sort((a,b)=>a.d-b.d)};
   // 반영: rs = 반영할 행들, sk = 미반영 표시된 행 번호, ed = 수정 금액
-  const apply_=(L,sk,ed,full)=>{const val=(x,n)=>ed&&ed.has(n)?ed.get(n):x.amt;const RID=Date.now().toString(36);
+  const apply_=(L,sk,ed,full)=>{const val=(x,n)=>ed&&ed.has(n)?ed.get(n):x.amt;const recPaid=(c,v,d)=>{const m=ymS(d||T0);const o=Object.assign({},c.pdM||{});o[m]=Math.round(((o[m]||0)+v)*100)/100;Object.keys(o).sort().slice(0,-3).forEach(k=>delete o[k]);c.pdM=o};const RID=Date.now().toString(36);
     const run=T=>{if(!T)return;let tot=0;const ap=T.applied=T.applied||{};const lb={};
       L.forEach((x,n)=>{const skip=sk&&sk.has(n),v=skip?0:val(x,n);if(x.t!=="one"||x.amt)tot+=v;
-        if(x.t==="card"&&!skip&&T.cards[x.i])T.cards[x.i].bal=Math.max(0,Math.round((num(T.cards[x.i].bal)+v)*100)/100);
+        if(x.t==="card"&&!skip&&T.cards[x.i]){T.cards[x.i].bal=Math.max(0,Math.round((num(T.cards[x.i].bal)+v)*100)/100);if(v<0)recPaid(T.cards[x.i],-v,x.d)}
         if(x.t==="loan"&&T.loans[x.i]){const l=T.loans[x.i],r=num(l.rate)/100/12;let b=lb[x.i]!=null?lb[x.i]:num(l.bal);b=(b+(skip?0:v))*(1+r);lb[x.i]=b;l.bal=Math.max(0,Math.round(b*100)/100)}
-        if(x.t==="one"&&T.oneoffs[x.i]){if(skip)ap[x.k]=T.oneoffs[x.i].date;else{T.oneoffs[x.i].amt=0;T.oneoffs[x.i].date=""}}
+        if(x.t==="one"&&T.oneoffs[x.i]){if(skip)ap[x.k]=T.oneoffs[x.i].date;else{const o=T.oneoffs[x.i];o.paidAmt=v;o.paidOn=iso(x.d||T0);o.amt=0;o.date=""}}
         else ap[x.k]=iso(T0)});
       tot=Math.round(tot*100)/100;
       
@@ -2348,8 +2350,8 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
         let pdq=iso(d);if(shift){const mo=(x.freq||"mo")==="mo";if(mo)x.day=PD;else x.date=PI;pdq=PI}
         x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:nmOf(g.name,x.name),amt:how.startsWith("card:")?-v:-v,card:!!cb,rev:{list:kind,i,j,name:x.name,before,cb,pdq}}}
       else if(kind==="inc"){const x=T.incomes[i];if(!x)return;const a=num(x.amt),d=incNext(x);if(!d||!(a>0))return;const before=pick(x,["pdL","date"]);bankAdd(T,a);let pdq=iso(d);if(shift){x.date=PI;pdq=PI}x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:x.name,amt:a,rev:{list:"incomes",i,name:x.name,before,pdq}}}
-      else if(kind==="one"){const o=T.oneoffs[i];if(!o)return;const a=num(o.amt);if(!a)return;const before=pick(o,["amt","date"]);const v=o.dir==="in"?a:-a;bankAdd(T,v);o.amt=0;o.date="";ent={label:o.name,amt:v,rev:{list:"oneoffs",i,name:o.name,before}}}
-      else if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;const before=pick(c,["bal","day"]);bankAdd(T,-b);c.bal=0;if(shift)c.day=PD;ent={label:c.name,amt:-b,rev:{list:"cards",i,name:c.name,before}}}
+      else if(kind==="one"){const o=T.oneoffs[i];if(!o)return;const a=num(o.amt);if(!a)return;const before=pick(o,["amt","date","paidAmt","paidOn"]);const v=o.dir==="in"?a:-a;bankAdd(T,v);o.paidAmt=v;o.paidOn=PI;o.amt=0;o.date="";ent={label:o.name,amt:v,rev:{list:"oneoffs",i,name:o.name,before}}}
+      else if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;const before=pick(c,["bal","day","pdM"]);bankAdd(T,-b);c.bal=0;{const m=ymS(P);const o=Object.assign({},c.pdM||{});o[m]=Math.round(((o[m]||0)+b)*100)/100;Object.keys(o).sort().slice(0,-3).forEach(k=>delete o[k]);c.pdM=o}if(shift)c.day=PD;ent={label:c.name,amt:-b,rev:{list:"cards",i,name:c.name,before}}}
       else if(kind==="loan"){const l=T.loans[i];if(!l)return;const b=num(l.bal),pm=num(l.pmt);if(!(b>0)||!(pm>0))return;const before=pick(l,["bal","skipM","day"]);const pay=Math.min(pm,b);bankAdd(T,-pay);l.bal=r2(b-pay);if(shift){l.day=PD;l.skipM=ymS(P)}else{const nx=ymS(nextOn(dayOf(l.day)));if(!l.skipM||l.skipM<nx)l.skipM=nx}ent={label:l.name,amt:-pay,rev:{list:"loans",i,name:l.name,before}}}
       else if(kind==="plan"){const q=T.plans[i];if(!q)return;const b=num(q.bal),n=Math.max(0,Math.round(num(q.n)));if(!(b>0))return;const before=pick(q,["bal","n","skip","asOf","day"]);const per=q.payoff||n<=1?b:r2(b/n);bankAdd(T,-per);q.bal=r2(b-per);if(!q.payoff)q.n=Math.max(0,n-1);if(shift)q.day=PD;q.asOf=iso(T0);q.skip=true;ent={label:q.name,amt:-per,rev:{list:"plans",i,name:q.name,before}}}
       if(ent){ent.bankD=r2(bankTot(T)-B0);T.log=(T.log||[]).filter(e=>e.src==="now"&&e.d>=iso(new Date(T0.getTime()-60*864e5))).concat([Object.assign({id,d:PI,src:"now",bal:bankTot(T)},ent)])}};
