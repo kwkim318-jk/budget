@@ -42,5 +42,5 @@
 })();
 
 // 새 버전 올라오면 앱 다시 열 때(화면으로 돌아올 때) 자동으로 새로고침
-(()=>{const V="2026-11-14-7";const chk=()=>{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{if(t&&t.trim()&&t.trim()!==V){const k="rl_"+t.trim();try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(_){}location.reload()}}).catch(()=>{})};
+(()=>{const V="2026-11-14-8";const chk=()=>{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{if(t&&t.trim()&&t.trim()!==V){const k="rl_"+t.trim();try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(_){}location.reload()}}).catch(()=>{})};
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")chk()});window.addEventListener("load",()=>setTimeout(chk,1500))})();

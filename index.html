@@ -1079,9 +1079,22 @@ function compute(){
     const dk=k=>-inM.filter(e=>e.cat==="debt"&&e.kind===k).reduce((a,e)=>a+e.amt,0);const debtIt={};inM.filter(e=>e.cat==="debt").forEach(e=>{const o=(debtIt[e.kind]=debtIt[e.kind]||{}),n=e.dname||e.label||"기타";o[n]=(o[n]||0)-e.amt});
     return {M,inc,ess,debt,one,allow,emergV,goalV,funV,saveV:Math.max(0,allow-funV),bal:allow-funV,left,leftBy,pays,end,essBy,essSub,debtIt,incBy,debtBy:{cards:dk("cards"),plans:dk("plans"),loans:dk("loans")}};
   });
+  // 이번 달: 1일부터 말일까지 전체로 (오늘 전에 지나간 것·이미 낸 것 포함). 통장 계산은 그대로
+  rows.forEach(r=>{r.allowFut=r.allow});
+  try{const r=rows.find(x=>x.M.key===CUR);if(r){const Y=T0.getFullYear(),Mo=T0.getMonth(),M1=new Date(Y,Mo,1),inCur=d=>d&&ymKey(d)===CUR;
+    const past=(f,day,date)=>{if(f==="mo"){const d=onDay(Y,Mo,dayOf(day));return d>=M1&&d<T0?[d]:[]}let p=pd(date);if(!p)return[];const dd=p.getDate();let g=0;while(p<M1&&g++<600)p=stepDate(p,f,dd);const o=[];while(p<T0&&g++<900){o.push(p);p=stepDate(p,f,dd)}return o};
+    const uni=(ds,pdl)=>{const m=new Map();ds.forEach(d=>m.set(iso(d),d));(pdl||[]).forEach(q=>{const d=pd(q);if(inCur(d)&&!m.has(q))m.set(q,d)});return [...m.values()]};
+    (S.incomes||[]).forEach(inc=>{const a=num(inc.amt);if(a<=0)return;const n=uni(past(inc.freq||"bi",null,inc.date),inc.pdL).length;if(!n)return;r.inc+=a*n;const nm=inc.name||"수입";r.incBy[nm]=(r.incBy[nm]||0)+a*n});
+    (S.ess||[]).forEach(e=>(e.subs||[]).forEach(x=>{const v=num(x.v);if(v<=0||(x.how||"bank")!=="bank")return;const n=uni(past(x.freq||"mo",x.day,x.date),x.pdL).length;if(!n)return;const t=v*n;r.ess+=t;r.essBy[e.name]=(r.essBy[e.name]||0)+t;const o=(r.essSub[e.name]=r.essSub[e.name]||{}),sn=x.name||e.name;o[sn]=(o[sn]||0)+t}));
+    const dAdd=(kind,nm,v)=>{r.debt+=v;r.debtBy[kind]=(r.debtBy[kind]||0)+v;const o=(r.debtIt[kind]=r.debtIt[kind]||{});o[nm]=(o[nm]||0)+v};
+    (S.loans||[]).forEach(l=>{const pm=num(l.pmt);if(pm<=0)return;const d=onDay(Y,Mo,dayOf(l.day));if((d>=M1&&d<T0)||(l.skipM===CUR&&d>=T0))dAdd("loans",l.name,pm)});
+    (S.plans||[]).forEach(q=>{const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0&&!(pd(q.asOf)&&pd(q.asOf)<=d))||(q.skip&&d>=T0))dAdd("plans",q.name,per)});
+    const full=t=>Math.round((S.alloc||[]).filter(a=>t.includes(a.type)&&activeAt(a,CUR)).reduce((q,a)=>q+allocVAt(a,CUR),0)*100)/100;
+    r.emergV=full(["emerg"]);r.goalV=full(["goal","custom"]);r.funV=full(["fun"]);
+    r.allow=r.inc-r.ess-r.debt-r.one-r.emergV-r.goalV;r.bal=r.allow-r.funV;r.saveV=Math.max(0,r.bal);r.full=true}}catch(_){}
   // bank at each month end if each month's 용돈 is fully spent
   const balAt=d=>{let b=num(S.bank);for(const e of R.ev){if(e.d<=d)b=e.bal;else break}return b};
-  let spent=0; rows.forEach(r=>{spent+=r.allow;r.cash=balAt(r.end)-spent;r.bankEnd=balAt(r.end)});
+  let spent=0; rows.forEach(r=>{spent+=r.allowFut;r.cash=balAt(r.end)-spent;r.bankEnd=balAt(r.end)});
   const debtNow=[...S.loans,...S.cards,...S.plans].reduce((a,x)=>a+num(x.bal),0);
   const free=rows.findIndex(r=>r.left<1);
   return {R,rows,essTotal,debtNow,free};
@@ -1187,7 +1200,7 @@ function render(){
 
   const m=C.rows[sel];
   $("months").innerHTML=$("monthsInline").innerHTML=C.rows.map((r,i)=>`<button class="chip" type="button" data-m="${i}" aria-pressed="${i===sel}">${(i===0||r.M.m===0)?`${r.M.y%100}<span class="cy">년&nbsp;</span><span class="cd">·</span>`:""}${r.M.m+1}<span class="cw">월</span>${extraPay(r.M)?"*":""}</button>`).join("");
-  $("heroLabel").textContent=mFull(m.M.key)+" 잔액"+(m.M.key===CUR?` (${md(T0)}부터)`:"");
+  $("heroLabel").textContent=mFull(m.M.key)+" 잔액";
   roll($("heroAmt"),fmt(m.bal));$("heroAmt").style.color=m.bal<0?"var(--warn)":(m.bal<=500?"color-mix(in srgb,var(--sand) 60%,var(--ink))":"var(--accent)");
   $("heroSub").innerHTML="";
   const p=$("heroPill");
