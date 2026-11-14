@@ -1055,7 +1055,7 @@ function simulate(){
     const b=num(p.bal),n=Math.max(0,Math.round(num(p.n))); const day=dayOf(p.day); let d=planStart(p); while(d<T0)d=addMonthKeep(d,day); const it={kind:"plans",i,start:b,steps:[],end:b<1?"done":null,next:b>=1?d:null};
     if(b>0){
       if(p.payoff){push(d,p.name+" (한 번에)",-b,"debt",{kind:"plans",dname:p.name});it.steps.push({d,left:0});it.end=d}
-      else if(n>0){const lc=p.card&&(S.cards||[]).find(c=>c.id===p.card),cf=lc?nextOn(dayOf(lc.day)):null;let left=b;for(let k=0;k<n;k++){const x=b/n;left-=x;if(!(lc&&k===0&&d<=cf))push(d,p.name+` 할부 ${k+1}/${n}`+(lc?` (${lc.name})`:""),-x,"debt",{kind:"plans",dname:p.name});if(d>=T0)it.steps.push({d,left:Math.max(0,left)});if(k===n-1)it.end=d;d=addMonthKeep(d,day)}}
+      else if(n>0){const lc=p.card&&(S.cards||[]).find(c=>c.id===p.card),cf=lc?nextOn(dayOf(lc.day)):null;let left=b;for(let k=0;k<n;k++){const x=b/n;left-=x;if(!(lc&&k===0&&d<=cf)){if(lc)push(d,`${lc.name} 카드값 (${p.name} 할부 ${k+1}/${n})`,-x,"ess",{ecat:"카드값",esub:lc.name,kind:"plans",dname:p.name});else push(d,p.name+` 할부 ${k+1}/${n}`,-x,"debt",{kind:"plans",dname:p.name})}if(d>=T0)it.steps.push({d,left:Math.max(0,left)});if(k===n-1)it.end=d;d=addMonthKeep(d,day)}}
     }
     items.push(it);
   });
@@ -1093,7 +1093,7 @@ function compute(){
     (S.ess||[]).forEach(e=>(e.subs||[]).forEach(x=>{const v=num(x.v);if(v<=0||(x.how||"bank")!=="bank")return;const n=uni(past(x.freq||"mo",x.day,x.date),x.pdL).length;if(!n)return;const t=v*n;r.ess+=t;r.essBy[e.name]=(r.essBy[e.name]||0)+t;const o=(r.essSub[e.name]=r.essSub[e.name]||{}),sn=x.name||e.name;o[sn]=(o[sn]||0)+t}));
     const dAdd=(kind,nm,v)=>{r.debt+=v;r.debtBy[kind]=(r.debtBy[kind]||0)+v;const o=(r.debtIt[kind]=r.debtIt[kind]||{});o[nm]=(o[nm]||0)+v};
     (S.loans||[]).forEach(l=>{const pm=num(l.pmt);if(pm<=0)return;const d=onDay(Y,Mo,dayOf(l.day));if((d>=M1&&d<T0)||(l.skipM===CUR&&d>=T0))dAdd("loans",l.name,pm)});
-    (S.plans||[]).forEach(q=>{const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0&&!(pd(q.asOf)&&pd(q.asOf)<=d))||(q.skip&&d>=T0))dAdd("plans",q.name,per)});
+    (S.plans||[]).forEach(q=>{const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0&&!(pd(q.asOf)&&pd(q.asOf)<=d))||(q.skip&&d>=T0)){const lc=q.card&&(S.cards||[]).find(c=>c.id===q.card);if(lc){r.ess+=per;r.essBy["카드값"]=(r.essBy["카드값"]||0)+per;const o=(r.essSub["카드값"]=r.essSub["카드값"]||{});o[lc.name]=(o[lc.name]||0)+per}else dAdd("plans",q.name,per)}});
     const full=t=>Math.round((S.alloc||[]).filter(a=>t.includes(a.type)&&activeAt(a,CUR)).reduce((q,a)=>q+allocVAt(a,CUR),0)*100)/100;
     r.emergV=full(["emerg"]);r.goalV=full(["goal","custom"]);r.funV=full(["fun"]);
     r.allow=r.inc-r.ess-r.debt-r.one-r.emergV-r.goalV;r.bal=r.allow-r.funV;r.saveV=Math.max(0,r.bal);r.full=true}}catch(_){}
