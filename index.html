@@ -1094,7 +1094,7 @@ function compute(){
     (S.ess||[]).forEach(e=>(e.subs||[]).forEach(x=>{const v=num(x.v);if(v<=0||(x.how||"bank")!=="bank")return;const n=uni(past(x.freq||"mo",x.day,x.date),x.pdL).length;if(!n)return;const t=v*n;r.ess+=t;r.essBy[e.name]=(r.essBy[e.name]||0)+t;const o=(r.essSub[e.name]=r.essSub[e.name]||{}),sn=x.name||e.name;o[sn]=(o[sn]||0)+t}));
     const dAdd=(kind,nm,v)=>{r.debt+=v;r.debtBy[kind]=(r.debtBy[kind]||0)+v;const o=(r.debtIt[kind]=r.debtIt[kind]||{});o[nm]=(o[nm]||0)+v};
     (S.loans||[]).forEach(l=>{const pm=num(l.pmt);if(pm<=0)return;const d=onDay(Y,Mo,dayOf(l.day));if((d>=M1&&d<T0)||(l.skipM===CUR&&d>=T0))dAdd("loans",l.name,pm)});
-    (S.plans||[]).forEach(q=>{const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0&&!(pd(q.asOf)&&pd(q.asOf)<=d))||(q.skip&&d>=T0))dAdd("plans",q.name,per)});
+    (S.plans||[]).forEach(q=>{if(q.card&&(S.cards||[]).some(c=>c.id===q.card))return;const n=Math.max(1,Math.round(num(q.n))),b=num(q.bal);const d=onDay(Y,Mo,dayOf(q.day));const per=q.payoff?0:(b>0?b/n:0);if(per<=0)return;if((d>=M1&&d<T0&&!(pd(q.asOf)&&pd(q.asOf)<=d))||(q.skip&&d>=T0))dAdd("plans",q.name,per)});
     const full=t=>Math.round((S.alloc||[]).filter(a=>t.includes(a.type)&&activeAt(a,CUR)).reduce((q,a)=>q+allocVAt(a,CUR),0)*100)/100;
     r.emergV=full(["emerg"]);r.goalV=full(["goal","custom"]);r.funV=full(["fun"]);
     r.allow=r.inc-r.ess-r.debt-r.one-r.emergV-r.goalV;r.bal=r.allow-r.funV;r.saveV=Math.max(0,r.bal);r.full=true}}catch(_){}
