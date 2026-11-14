@@ -2241,7 +2241,7 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
         if(x.t==="one"&&T.oneoffs[x.i]){if(skip)ap[x.k]=T.oneoffs[x.i].date;else{T.oneoffs[x.i].amt=0;T.oneoffs[x.i].date=""}}
         else ap[x.k]=iso(T0)});
       tot=Math.round(tot*100)/100;
-      {const lg=L.map((x,n)=>({x,v:sk&&sk.has(n)?0:val(x,n)})).filter(o=>o.v&&Math.abs(o.v)>=0.005).map((o,n)=>({id:RID+"-"+n,d:iso(o.x.d),src:"roll",label:o.x.label,amt:o.x.t==="card"?0:Math.round(o.v*100)/100,card:o.x.t==="card"}));T.log=(T.log||[]).concat(lg)}
+      
       if(Array.isArray(T.accounts)&&T.accounts.length){T.accounts[0].bal=Math.round((num(T.accounts[0].bal)+tot)*100)/100;T.bank=Math.round(T.accounts.reduce((a,c)=>a+num(c.bal),0)*100)/100}else T.bank=Math.round((num(T.bank)+tot)*100)/100;
       // 반영하면 "이번 달 … 이미 냄" 표시 초기화
       L.forEach(x=>{if(x.t==="loan"&&T.loans[x.i])T.loans[x.i].skipM=""});
@@ -2334,7 +2334,7 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
       else if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;const before=pick(c,["bal","day"]);bankAdd(T,-b);c.bal=0;if(shift)c.day=PD;ent={label:c.name,amt:-b,rev:{list:"cards",i,name:c.name,before}}}
       else if(kind==="loan"){const l=T.loans[i];if(!l)return;const b=num(l.bal),pm=num(l.pmt);if(!(b>0)||!(pm>0))return;const before=pick(l,["bal","skipM","day"]);const pay=Math.min(pm,b);bankAdd(T,-pay);l.bal=r2(b-pay);if(shift){l.day=PD;l.skipM=ymS(P)}else{const nx=ymS(nextOn(dayOf(l.day)));if(!l.skipM||l.skipM<nx)l.skipM=nx}ent={label:l.name,amt:-pay,rev:{list:"loans",i,name:l.name,before}}}
       else if(kind==="plan"){const q=T.plans[i];if(!q)return;const b=num(q.bal),n=Math.max(0,Math.round(num(q.n)));if(!(b>0))return;const before=pick(q,["bal","n","skip","asOf","day"]);const per=q.payoff||n<=1?b:r2(b/n);bankAdd(T,-per);q.bal=r2(b-per);if(!q.payoff)q.n=Math.max(0,n-1);if(shift)q.day=PD;q.asOf=iso(T0);q.skip=true;ent={label:q.name,amt:-per,rev:{list:"plans",i,name:q.name,before}}}
-      if(ent){ent.bankD=r2(bankTot(T)-B0);T.log=(T.log||[]).concat([Object.assign({id,d:PI,src:"now",bal:bankTot(T)},ent)])}};
+      if(ent){ent.bankD=r2(bankTot(T)-B0);T.log=(T.log||[]).filter(e=>e.src==="now"&&e.d>=iso(new Date(T0.getTime()-60*864e5))).concat([Object.assign({id,d:PI,src:"now",bal:bankTot(T)},ent)])}};
     run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);if(JSON.stringify(S)===b0)return;changed(true);undoShow(snap)};
   window.__payNow=payNow;
   // 기록 취소: 지금 반영으로 바뀐 값만 되돌림
@@ -2655,7 +2655,7 @@ new MutationObserver(()=>{if(!q)q=requestAnimationFrame(fix)}).observe(document.
   const draw=()=>{const fb=document.querySelector(".flowbox");if(!fb)return;if(!box){box=document.createElement("div");box.id="logbox";fb.parentNode.insertBefore(box,fb);box.addEventListener("click",ev=>{const r=ev.target.closest(".lg-r");if(r)openLog(r.dataset.lid)})}
     const L=(S.log||[]).slice().sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);if(!L.length){box.hidden=true;box.innerHTML="";return}box.hidden=false;const cur=ymS(T0);const by={};L.forEach(e=>{const k=(e.d||"").slice(0,7);(by[k]=by[k]||[]).push(e)});const ks=Object.keys(by).sort().reverse();const open=new Set([...box.querySelectorAll("details[open]")].map(d=>d.dataset.k));
     box.innerHTML=`<div class="lg-h"><span>반영 기록</span><span>${L.length}건</span></div>`+ks.map(k=>k===cur?by[k].map(row).join(""):`<details data-k="${k}" ${open.has(k)?"open":""}><summary>${+k.slice(2,4)}년 ${+k.slice(5,7)}월 · ${by[k].length}건</summary>${by[k].map(row).join("")}</details>`).join("")};
-  const _r=render;render=function(){const x=_r.apply(this,arguments);try{draw()}catch(e){console.warn(e)}return x};try{draw()}catch(_){}
+  /* 반영 기록 칸 숨김 */
 })();
 </script>
 <script>
