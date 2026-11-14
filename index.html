@@ -1032,11 +1032,16 @@ function simulate(){
       if(x.how==="bank"){push(d,lbl,-v,"alloc",{});return}
       const id=x.how.slice(5);if(k<CUR||(k===CUR&&d<T0))return;const b=(CBA[id]=CBA[id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set()});o.amt+=v;o.names.add(x.name)})}));
   // loans & cards: balance with monthly interest
+  // 이번 달 오늘 전에 카드로 쓴 필수지출 (카드 잔액 안에 들어 있는 것) - 다음 달 카드값 나눠 보여주기용
+  const pastCard=id=>{const Y=T0.getFullYear(),Mo=T0.getMonth(),M1=new Date(Y,Mo,1),o={cats:{},subs:{},sum:0};
+    S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const lc=linkedCard(x);if(!lc||lc.id!==id)return;const v=num(x.v);if(v<=0)return;const f=x.freq||"mo";let n=0;
+      if(f==="mo"){const d=onDay(Y,Mo,dayOf(x.day));if(d>=M1&&d<T0)n=1}else{let p=pd(x.date);if(p){const dd=p.getDate();let g=0;while(p<M1&&g++<600)p=stepDate(p,f,dd);while(p<T0&&g++<900){n++;p=stepDate(p,f,dd)}}}
+      if(!n)return;const t=v*n;o.sum+=t;o.cats[e.name]=(o.cats[e.name]||0)+t;const k=e.name+"\u0001"+(x.name||e.name);o.subs[k]=(o.subs[k]||0)+t}));return o};
   const sim=(list,kind)=>list.forEach((l,i)=>{
     let b=num(l.bal); const full=kind==="cards", r=full?0:num(l.rate)/100/12, pm=full?b:num(l.pmt); const day=dayOf(l.day); let d=nextOn(day); if(kind==="loans"&&l.skipM&&l.skipM===ymS(d))d=addMonthKeep(d,day); const it={kind,i,start:b,steps:[],end:b<1?"done":null,next:b>=1&&pm>0?d:null};
     if(pm>0){ let guard=0;
       while(d<=HORIZON&&b>0.5&&guard++<60){const pay=Math.min(pm,b);b=(b-pay)*(1+r);
-        if(d>=T0){if(full)push(d,l.name+" 카드값",-pay,"ess",{ecat:"카드값",esub:l.name,kind,dname:l.name});else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
+        if(d>=T0){if(full){let ex={ecat:"카드값",esub:l.name,kind,dname:l.name};if(guard===1&&ymKey(d)===CUR+1){const pc=pastCard(l.id);if(pc.sum>0.005){const sc=pc.sum>pay?pay/pc.sum:1,cats={},subs={};Object.entries(pc.cats).forEach(([c,v])=>cats[c]=v*sc);Object.entries(pc.subs).forEach(([c,v])=>subs[c]=v*sc);const rest=pay-pc.sum*sc;if(rest>0.005){cats["카드값"]=rest;subs["카드값\u0001"+l.name]=rest}ex={ecats:cats,esubs:subs,kind,dname:l.name}}}push(d,l.name+" 카드값",-pay,"ess",ex)}else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
         if(b<=0.5&&!it.end)it.end=d; d=addMonthKeep(d,day);}
     }
     items.push(it);
@@ -1050,7 +1055,7 @@ function simulate(){
     const b=num(p.bal),n=Math.max(0,Math.round(num(p.n))); const day=dayOf(p.day); let d=planStart(p); while(d<T0)d=addMonthKeep(d,day); const it={kind:"plans",i,start:b,steps:[],end:b<1?"done":null,next:b>=1?d:null};
     if(b>0){
       if(p.payoff){push(d,p.name+" (한 번에)",-b,"debt",{kind:"plans",dname:p.name});it.steps.push({d,left:0});it.end=d}
-      else if(n>0){let left=b;for(let k=0;k<n;k++){const x=b/n;left-=x;push(d,p.name+` 할부 ${k+1}/${n}`,-x,"debt",{kind:"plans",dname:p.name});if(d>=T0)it.steps.push({d,left:Math.max(0,left)});if(k===n-1)it.end=d;d=addMonthKeep(d,day)}}
+      else if(n>0){const lc=p.card&&(S.cards||[]).find(c=>c.id===p.card),cf=lc?nextOn(dayOf(lc.day)):null;let left=b;for(let k=0;k<n;k++){const x=b/n;left-=x;if(!(lc&&k===0&&d<=cf))push(d,p.name+` 할부 ${k+1}/${n}`+(lc?` (${lc.name})`:""),-x,"debt",{kind:"plans",dname:p.name});if(d>=T0)it.steps.push({d,left:Math.max(0,left)});if(k===n-1)it.end=d;d=addMonthKeep(d,day)}}
     }
     items.push(it);
   });
@@ -1162,7 +1167,7 @@ function buildInputs(){
     <div class="fields">${fld("잔액","cards",i,"bal",c.bal)}${fld("상환일 (매월)","cards",i,"day",c.day,{unit:"일",step:"1"})}</div></div>`).join("")+`<button class="add" type="button" data-add="cards">＋ 카드 추가</button>`+upd("cards");
 
   $("plans").innerHTML=D.plans.map((p,i)=>`<div class="row"><input class="tname" value="${esc(p.name)}" data-list="plans" data-i="${i}" data-f="name" aria-label="플랜 이름"><span class="end" id="pe${i}"></span><button class="del" type="button" data-del="plans" data-i="${i}">삭제</button>
-    <div class="fields">${fld("잔액","plans",i,"bal",p.bal)}${fld("남은 횟수","plans",i,"n",p.n,{unit:"회",step:"1"})}${fld("상환일 (매월)","plans",i,"day",p.day,{unit:"일",step:"1"})}</div>
+    <div class="fields">${fld("잔액","plans",i,"bal",p.bal)}${fld("남은 횟수","plans",i,"n",p.n,{unit:"회",step:"1"})}${fld("상환일 (매월)","plans",i,"day",p.day,{unit:"일",step:"1"})}<label class="fld"><span>카드</span><span class="money"><select data-list="plans" data-i="${i}" data-f="card" aria-label="카드"><option value="">없음</option>${D.cards.map(c=>`<option value="${esc(c.id||"")}" ${p.card&&p.card===c.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select></span></label></div>
     <div class="meta"><span id="pm${i}"></span><label class="toggle"><input type="checkbox" ${p.skip?"checked":""} data-list="plans" data-i="${i}" data-f="skip"> 이번 달 할부금은 이미 냄</label><label class="toggle"><input type="checkbox" ${p.payoff?"checked":""} data-list="plans" data-i="${i}" data-f="payoff"> 한 번에 다 갚기</label></div></div>`).join("")+`<button class="add" type="button" data-add="plans">＋ 플랜 추가</button>`+upd("plans");
 
   $("loans").innerHTML=D.loans.map((l,i)=>`<div class="row"><input class="tname" value="${esc(l.name)}" data-list="loans" data-i="${i}" data-f="name" aria-label="대출 이름"><span class="end" id="le${i}"></span><button class="del" type="button" data-del="loans" data-i="${i}">삭제</button>
@@ -1622,7 +1627,7 @@ function onField(e){
   if(t.dataset.k){D[t.dataset.k]=t.type==="date"?t.value:num(t.value);mark("bank",false)}
   else if(t.dataset.list){const it=D[t.dataset.list][+t.dataset.i];if(!it)return;const f=t.dataset.f;
     if(f==="skipM"){it.skipM=t.checked?ymS(nextOn(dayOf(it.day))):"";mark(secOf(t.dataset.list),true);return}
-    it[f]=(f==="name"||f==="dir"||f==="how"||f==="freq"||f==="type"||f==="from"||f==="to"||t.type==="date"||t.type==="month")?t.value:(t.type==="checkbox"?t.checked:num(t.value));
+    it[f]=(f==="name"||f==="card"||f==="dir"||f==="how"||f==="freq"||f==="type"||f==="from"||f==="to"||t.type==="date"||t.type==="month")?t.value:(t.type==="checkbox"?t.checked:num(t.value));
     if(t.dataset.list==="ess"&&f==="freq"&&it.subs&&it.subs.length)it.v=subSum(it);
     if(t.dataset.list==="plans"&&f!=="name")it.asOf=iso(T0);
     if(t.dataset.list==="alloc"&&f==="type")it.name=ALLOC[it.type];
