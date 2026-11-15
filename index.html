@@ -1037,6 +1037,8 @@ function simulate(){
     S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const lc=linkedCard(x);if(!lc||lc.id!==id)return;const v=num(x.v);if(v<=0)return;const f=x.freq||"mo";let n=0;
       if(f==="mo"){const d=onDay(Y,Mo,dayOf(x.day));if(d>=M1&&d<T0)n=1}else{let p=pd(x.date);if(p){const dd=p.getDate();let g=0;while(p<M1&&g++<600)p=stepDate(p,f,dd);while(p<T0&&g++<900){n++;p=stepDate(p,f,dd)}}}
       if(!n)return;const t=v*n;o.sum+=t;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+t;const k=e.name+"\u0001"+(x.name||e.name);o.subs[k]=(o.subs[k]||0)+t}));return o};
+  // 이번 달 오늘 전에 카드로 쓴 필수지출 중 카드 잔액에 안 들어 있는 만큼은 다음 카드값에 더하기
+  (S.cards||[]).forEach(c=>{const pc=pastCard(c.id);if(pc.sum<=0.005)return;const cov=Math.min(Math.max(0,num(c.bal)),pc.sum),un=pc.sum-cov;if(un<=0.005)return;const f=un/pc.sum;const b=(CB[c.id]=CB[c.id]||{});const o=(b[CUR]=b[CUR]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=un;pc.names.forEach(n=>o.names.add(n));Object.entries(pc.cats).forEach(([k,v])=>o.cats[k]=(o.cats[k]||0)+v*f);Object.entries(pc.subs).forEach(([k,v])=>o.subs[k]=(o.subs[k]||0)+v*f)});
   const sim=(list,kind)=>list.forEach((l,i)=>{
     let b=num(l.bal); const full=kind==="cards", r=full?0:num(l.rate)/100/12, pm=full?b:num(l.pmt); const day=dayOf(l.day); let d=nextOn(day); if(kind==="loans"&&l.skipM&&l.skipM===ymS(d))d=addMonthKeep(d,day); const it={kind,i,start:b,steps:[],end:b<1?"done":null,next:b>=1&&pm>0?d:null};
     if(pm>0){ let guard=0;
