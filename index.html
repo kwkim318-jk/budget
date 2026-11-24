@@ -832,6 +832,7 @@ h2:has(> .hright){align-items:center!important}.hright{margin-right:8px;margin-l
 #grpBody .nkey{flex:0 0 auto;height:24px;padding:0 8px;margin:0 6px 0 4px;border:0;border-radius:6px;background:color-mix(in srgb,var(--bg) 94%,#000);color:var(--muted);font:inherit;font-size:12px;white-space:nowrap;cursor:pointer}#grpBody .cathead{cursor:pointer}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #grpBody .nkey{background:color-mix(in srgb,var(--bg) 85%,#fff)}}:root[data-theme="dark"] #grpBody .nkey{background:color-mix(in srgb,var(--bg) 85%,#fff)}
 .aitem .ai-nw{grid-area:n;display:flex;align-items:center;min-width:0;gap:0}.aitem .ai-nw .ai-n{flex:1 1 auto;min-width:0}.aitem .ai-nw .rkey{margin-left:6px}
 #grpBody .row > .nkey{margin-left:auto!important}#grpBody .row > .tname + .rkey{margin-left:6px}#grpBody .row > .nkey{margin-right:0}#grpBody > section:not(.sed) .cat:not(.ced) .aitem .ai-nw{grid-column:1 / -1}.aitem .ai-nw .ai-n{flex:0 1 auto}.aitem .ai-nw .nkey{margin-left:auto!important}.aitem .ai-nw .ai-n + .rkey{margin-left:6px}.aitem .ai-nw .nkey{margin-right:0}
+.sgn{flex:none;border:0;background:none;color:var(--muted);font:inherit;font-size:14px;padding:0 6px 0 0;cursor:pointer}
 </style>
 
 <div class="wrap">
@@ -1149,7 +1150,7 @@ function buildInputs(){
     <div class="fields">${fld("금액 (실수령)","incomes",i,"amt",x.amt)}<label class="fld"><span>주기</span><span class="money"><select data-list="incomes" data-i="${i}" data-f="freq" aria-label="주기">${Object.entries(FREQ).map(([k,l])=>`<option value="${k}" ${x.freq===k?"selected":""}>${l}</option>`).join("")}</select></span></label>${fld("첫 입금일","incomes",i,"date",x.date,{type:"date"})}</div></div>`).join("")}
     <button class="add" type="button" data-add="incomes">＋ 정기 수입 추가</button>`+upd("base");
   $("bankbox").innerHTML=`<div class="subhd"><input class="htitle subhd-in" data-title="acctHd" value="${esc((S.titles&&S.titles.acctHd)||"통장")}" aria-label="제목 바꾸기"></div>
-    ${(D.accounts||[]).map((a,i)=>`<div class="row"><input class="tname" value="${esc(a.name)}" data-list="accounts" data-i="${i}" data-f="name" aria-label="통장 이름"><span class="money solo"><span>$</span><input type="number" inputmode="decimal" step="0.01" value="${esc(a.bal)}" data-list="accounts" data-i="${i}" data-f="bal" aria-label="잔액"></span><button class="del" type="button" data-del="accounts" data-i="${i}">삭제</button></div>`).join("")}
+    ${(D.accounts||[]).map((a,i)=>`<div class="row"><input class="tname" value="${esc(a.name)}" data-list="accounts" data-i="${i}" data-f="name" aria-label="통장 이름"><span class="money solo"><button type="button" class="sgn" data-sgn="${i}" aria-label="부호 바꾸기">±</button><span>$</span><input type="number" inputmode="decimal" step="0.01" value="${esc(a.bal)}" data-list="accounts" data-i="${i}" data-f="bal" aria-label="잔액"></span><button class="del" type="button" data-del="accounts" data-i="${i}">삭제</button></div>`).join("")}
     <button class="add" type="button" data-add="accounts">＋ 통장 추가</button>
     ${(D.accounts||[]).length>1?`<div class="row"><span class="name">통장 합계</span><b class="num" id="acctSum" style="margin-left:auto">${fmt2(num(D.bank))}</b></div>`:""}
     <div class="subhd subhd-row"><input class="htitle subhd-in" data-title="goalHd" value="${esc((S.titles&&S.titles.goalHd)||"목표")}" aria-label="제목 바꾸기"><button class="aedit" type="button" data-aedit aria-pressed="${AEDIT}">${AEDIT?"완료":"Edit"}</button></div>
@@ -1645,6 +1646,7 @@ function onField(e){
   else return;
 }
 document.addEventListener("input",onField);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-sgn]");if(!b)return;const inp=b.parentNode.querySelector("input");const v=num(inp.value);if(!v)return;inp.value=String(Math.round(-v*100)/100);inp.dispatchEvent(new Event("input",{bubbles:true}))});
 document.addEventListener("change",e=>{if(e.target.tagName==="SELECT"||e.target.type==="checkbox")onField(e)});
 function changed(rebuild){S.updatedAt=new Date().toISOString();if(rebuild)buildInputs();render();queueSave()}
 const SECT={base:["incomes"],bank:["bank","accounts","emerg","goal","fun","alloc"],oneoffs:["oneoffs"],cards:["cards"],plans:["plans"],loans:["loans"],ess:["ess"]};
