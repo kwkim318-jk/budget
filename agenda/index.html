@@ -795,7 +795,7 @@ function repPickDom(btn){var box=btn.closest('.repctl');var act=btn.getAttribute
  if(act==='kindpick'){set('kindpick',v);var row=box.querySelector('.rprow');row.hidden=(v==='task');if(v!=='task'&&!box.querySelector('[data-act="reppick"][aria-pressed="true"]'))set('reppick',v==='habit'?'1d':'1w');}
  else set('reppick',v);}
 function repLabel(it){if(!it.rep)return '';var l=REPL[it.rep];if(isWk(it.rep))l+=' '+wdsLabel(wdsOf(it));else if(it.rep==='1m'||it.rep==='3m')l+=' '+mdsLabel(mdsOf(it));else if(it.rep==='1y'){var yd=ydOf(it);l+=' '+MONL[yd[0]]+' '+yd[1]+'일';}return l;}
-function repTag(it){if(!it.rep)return '';var k=it.habit?streak(it):0;return '<span class="rtag'+(it.habit?' habit':'')+'" title="'+(it.habit?'습관 · ':'반복 · ')+REPL[it.rep]+'">'+IC.rep+'<span class="rl">'+(it.habit?'습관 · ':'')+REPL[it.rep]+(isWk(it.rep)&&it.wds&&it.wds.length>1?' '+wdsLabel(it.wds):'')+((it.rep==='1m'||it.rep==='3m')?' '+mdsLabel(mdsOf(it)):'')+(it.rep==='1y'?' '+MONL[ydOf(it)[0]]+' '+ydOf(it)[1]+'일':'')+(k>1?' · '+k+'연속':'')+'</span>'+(it.habit?weekDots(it):'')+'</span>';}
+function repTag(it){if(!it.rep)return '';var k=it.habit?streak(it):0;return '<span class="rtag'+(it.habit?' habit':'')+'" title="'+(it.habit?'습관 · ':'반복 · ')+REPL[it.rep]+'">'+IC.rep+'<span class="rl">'+(it.habit?'습관 · ':'')+REPL[it.rep]+(isWk(it.rep)&&it.wds&&it.wds.length>1?' '+wdsLabel(it.wds):'')+((it.rep==='1m'||it.rep==='3m')?' '+mdsLabel(mdsOf(it)):'')+(it.rep==='1y'?' '+MONL[ydOf(it)[0]]+' '+ydOf(it)[1]+'일':'')+(k>1?' · '+k+'연속':'')+'</span></span>';}
 function fmt(s){var d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')';}
 function ddTag(it){
   if(!it.due)return '';
