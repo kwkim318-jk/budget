@@ -792,6 +792,7 @@ function repPickDom(btn){var box=btn.closest('.repctl');var act=btn.getAttribute
  function set(sel,val){box.querySelectorAll('[data-act="'+sel+'"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===val));});}
  if(act==='kindpick'){set('kindpick',v);var row=box.querySelector('.rprow');row.hidden=(v==='task');if(v!=='task'&&!box.querySelector('[data-act="reppick"][aria-pressed="true"]'))set('reppick',v==='habit'?'1d':'1w');}
  else set('reppick',v);}
+function repLabel(it){if(!it.rep)return '';var l=REPL[it.rep];if(isWk(it.rep))l+=' '+wdsLabel(wdsOf(it));else if(it.rep==='1m'||it.rep==='3m')l+=' '+mdsLabel(mdsOf(it));else if(it.rep==='1y'){var yd=ydOf(it);l+=' '+MONL[yd[0]]+' '+yd[1]+'일';}return l;}
 function repTag(it){if(!it.rep)return '';var k=it.habit?streak(it):0;return '<span class="rtag'+(it.habit?' habit':'')+'" title="'+(it.habit?'습관 · ':'반복 · ')+REPL[it.rep]+'">'+IC.rep+'<span class="rl">'+(it.habit?'습관 · ':'')+REPL[it.rep]+(isWk(it.rep)&&it.wds&&it.wds.length>1?' '+wdsLabel(it.wds):'')+((it.rep==='1m'||it.rep==='3m')?' '+mdsLabel(mdsOf(it)):'')+(it.rep==='1y'?' '+MONL[ydOf(it)[0]]+' '+ydOf(it)[1]+'일':'')+(k>1?' · '+k+'연속':'')+'</span>'+(it.habit?weekDots(it):'')+'</span>';}
 function fmt(s){var d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+' ('+WD[d.getDay()]+')';}
 function ddTag(it){
@@ -1052,7 +1053,7 @@ function renderCal(){
   h+='<div class="groups calday"><section class="cat">';
   var pjl=pj[calSel]||[];
   if(list.length)h+='<ul class="items">'+list.map(itemHTML).join('')+'</ul>';
-  if(pjl.length)h+='<ul class="pjlist">'+pjl.map(function(x){return '<li><span class="rpi">'+IC.rep+'</span><span class="mt">'+esc(x.title)+'</span><span class="mc">'+(x.habit?'습관 · ':'')+REPL[x.rep]+'</span></li>';}).join('')+'</ul>';
+  if(pjl.length)h+='<ul class="pjlist">'+pjl.map(function(x){return '<li><span class="rpi">'+IC.rep+'</span><span class="mt">'+esc(x.title)+'</span><span class="mc">'+(x.habit?'습관 · ':'')+esc(repLabel(x))+'</span></li>';}).join('')+'</ul>';
   if(!list.length&&!pjl.length)h+='<div class="catempty">이 날짜에 기한인 할 일이 없어요.</div>';
   h+='<div class="inl caladd"><input class="inp" id="cal-new" placeholder="'+(sd.getMonth()+1)+'/'+sd.getDate()+'에 추가, Enter" aria-label="이 날짜에 추가" autocomplete="off"><select class="inp" id="cal-kind" aria-label="종류">'+[['task','할 일'],['ev','일정'],['evy','매년 (생일·기념일)']].map(function(p){return '<option value="'+p[0]+'"'+(lastCalKind===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select><select class="inp" id="cal-cat" aria-label="분류"'+(lastCalKind!=='task'?' hidden':'')+'>'+catOptions(lastCalCat||(S.cats[0]&&S.cats[0].id))+'</select><button class="btn sm" data-cal="add">추가</button></div>';
   h+='</section></div></div>';
@@ -1070,7 +1071,7 @@ function monthList(y,m,by,ts,pj){pj=pj||{};
     rows+='<li class="mlg'+(ds===calSel?' sel':'')+(ds===ts?' today':'')+'"><button type="button" class="mld" data-cal="day" data-date="'+ds+'"><span class="mdn'+(over?' over':'')+'">'+d+'</span><span class="mwd">'+WDE[dt.getDay()]+'</span></button><div class="mlc">'+
       hl.map(function(x){return '<div class="mlh s-'+x.s+'"><b>'+HOLCD[x.s]+'</b>'+esc(x.n)+'</div>';}).join('')+
       its.map(function(x){var st=x.status==='done'?'done':((ds<ts)?'over':x.status);return '<button type="button" class="mli'+(x.status==='done'?' isdone':'')+'" data-cal="day" data-date="'+ds+'"><i class="cd '+st+'"></i><span class="mt">'+esc(x.title)+'</span><span class="mc">'+esc(catN[x.cat]||'')+'</span></button>';}).join('')+
-      pjs.map(function(x){return '<button type="button" class="mli rp" data-cal="day" data-date="'+ds+'"><span class="rpi">'+IC.rep+'</span><span class="mt">'+esc(x.title)+'</span><span class="mc">'+REPL[x.rep]+'</span></button>';}).join('')+'</div></li>';}
+      pjs.map(function(x){return '<button type="button" class="mli rp" data-cal="day" data-date="'+ds+'"><span class="rpi">'+IC.rep+'</span><span class="mt">'+esc(x.title)+'</span><span class="mc">'+(x.habit?'습관 · ':'')+esc(repLabel(x))+'</span></button>';}).join('')+'</div></li>';}
   return '<aside class="mlist" aria-label="이번 달 목록"><div class="mlhd"><h3>'+MONTHS[m]+'</h3><span class="cnt">'+(total?'할 일 '+total+'개':'')+'</span></div>'+(rows?'<ul>'+rows+'</ul>':'<div class="catempty">이번 달에 기한인 할 일이 없어요.</div>')+'</aside>';
 }
 function dueToday(it){var t=today(),ts=ymd(t);if(it.status==='done')return false;if(it.due)return it.due<=ts;if(!it.rep)return false;
