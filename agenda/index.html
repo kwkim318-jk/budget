@@ -621,7 +621,7 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .calcell .hn b{font-weight:600;font-size:9px;letter-spacing:.02em;margin-right:4px}
 :root[data-bg="linear"] .calcell .hn.s-ab b,:root[data-bg="linear"] .hset.s-ab i,:root[data-bg="linear"] .hm .s-ab{color:#ff8a8a;background-color:#ff8a8a}
 :root[data-bg="linear"] .calcell .hn.s-us b,:root[data-bg="linear"] .hset.s-us i,:root[data-bg="linear"] .hm .s-us{color:#8fb4ff;background-color:#8fb4ff}
-:root[data-bg="linear"] .calcell .hn.s-me b,:root[data-bg="linear"] .hset.s-me i,:root[data-bg="linear"] .hm .s-me{color:#f2a7c8;background-color:#f2a7c8}
+:root[data-bg="linear"] .calcell .hn.s-me b,:root[data-bg="linear"] .hset.s-rp i{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--muted)}:root[data-bg="linear"] .hset.s-me i,:root[data-bg="linear"] .hm .s-me{color:#f2a7c8;background-color:#f2a7c8}
 :root[data-bg="linear"] .calcell .hn.s-me{color:var(--ink)}
 :root[data-bg="linear"] .calcell .hn.s-kr b,:root[data-bg="linear"] .hset.s-kr i,:root[data-bg="linear"] .hm .s-kr{color:#6fd0a0;background-color:#6fd0a0}
 :root[data-bg="linear"] .calcell .hn b{background:none!important}
@@ -996,8 +996,8 @@ var KRLUNAR={2024:[[2,10],[5,15],[9,17]],2025:[[1,29],[5,5],[10,6]],2026:[[2,17]
 var KRTEMP={'2026-06-03':'지방선거일'};
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'],WDE=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var HOLCD={ab:'AB',us:'US',kr:'KR',me:'●'},HOLNM={ab:'Alberta',us:'US',kr:'한국',me:'일정'};
-var HOLSETS=[['ab','Alberta'],['us','US'],['kr','한국'],['me','내 일정']];
-function holSets(){var o=S.holSets||{};return {ab:o.ab!==false,us:o.us!==false,kr:o.kr!==false,me:o.me!==false};}
+var HOLSETS=[['ab','Alberta'],['us','US'],['kr','한국'],['me','내 일정'],['rp','반복']];
+function holSets(){var o=S.holSets||{};return {ab:o.ab!==false,us:o.us!==false,kr:o.kr!==false,me:o.me!==false,rp:o.rp!==false};}
 function holidays(y){if(HOLI[y])return HOLI[y];var H={};function add(d,n,s,opt){var k=ymd(d);(H[k]=H[k]||[]).push({n:n,s:s,o:!!opt});}
  function ab(d,n,opt){add(d,n,'ab',opt);}
  ab(new Date(y,0,1),'New Year’s Day');ab(nthDow(y,1,1,3),'Family Day');var e=easter(y);ab(new Date(y,e.getMonth(),e.getDate()-2),'Good Friday');ab(new Date(y,e.getMonth(),e.getDate()+1),'Easter Monday',1);
@@ -1038,7 +1038,7 @@ function renderCal(){
   h+='<div class="calnav"><h2 class="calm">'+MONTHS[m]+' '+y+'</h2><div class="holsets" role="group" aria-label="공휴일 표시">'+HOLSETS.map(function(p){return '<button type="button" class="hset s-'+p[0]+(hsz[p[0]]?' on':'')+'" data-cal="hs" data-s="'+p[0]+'" aria-pressed="'+(hsz[p[0]]?'true':'false')+'"><i></i>'+p[1]+'</button>';}).join('')+'</div><div class="calctl"><button class="btn ghost sm" data-cal="today">Today</button><button class="ib" data-cal="prev" aria-label="이전 달">'+L+'</button><button class="ib" data-cal="next" aria-label="다음 달">'+Rr+'</button></div></div>';
   h+='<div class="callay"><div class="calmain">';
   var by={};S.items.forEach(function(it){if(it.due)(by[it.due]=by[it.due]||[]).push(it);});
-  var pj=projRange(new Date(y,m-1,20),new Date(y,m+1,12));
+  var pj=holSets().rp?projRange(new Date(y,m-1,20),new Date(y,m+1,12)):{};
   var first=new Date(y,m,1),dim=new Date(y,m+1,0).getDate(),rows=Math.ceil((first.getDay()+dim)/7);
   h+='<div class="calgrid" role="grid" aria-label="'+MONTHS[m]+' '+y+'">';
   WDE.forEach(function(w,i){h+='<div class="calwd'+(i===0?' sun':(i===6?' sat':''))+'">'+w+'</div>';});
