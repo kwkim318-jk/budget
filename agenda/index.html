@@ -726,7 +726,7 @@ var FONTS='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel=
 var CSS=document.getElementById('css').textContent;
 var APP=document.getElementById('app').textContent;
 var S=JSON.parse(document.getElementById('state').textContent);
-var STATUS=[['todo','미완료'],['doing','진행 중'],['check','확인 필요'],['wait','대기 중'],['done','완료']];
+var STATUS=[['todo','시작 전'],['doing','진행 중'],['check','확인 필요'],['wait','대기 중'],['done','완료']];
 var SL={};STATUS.forEach(function(s){SL[s[0]]=s[1];});
 if(!S.cats)S.cats=[{id:'imm',name:'이민·서류'},{id:'money',name:'재정'},{id:'work',name:'회사'},{id:'career',name:'커리어·자격증'},{id:'life',name:'생활'}];
 var WD=['일','월','화','수','목','금','토'];
@@ -868,7 +868,7 @@ function itemHTML(it){
     '<div class="stw lead"><button type="button" class="sicon s-'+it.status+'" data-act="stmenu" data-id="'+it.id+'" data-k="l:'+it.id+'" aria-haspopup="menu" aria-expanded="'+(menuOpen==='l:'+it.id)+'" aria-label="상태: '+SL[it.status]+'" title="'+SL[it.status]+'">'+SICON[it.status]+'</button>'+(menuOpen==='l:'+it.id?menuHTML(it):'')+'</div>'+
     (editingTitle===it.id?'<div class="ttl"><input class="dt-title" id="title-'+it.id+'" data-act="title" value="'+esc(it.title)+'" aria-label="제목"></div>':'<button class="ttl" data-act="expand" aria-expanded="'+(open[it.id]?'true':'false')+'"><span class="t">'+esc(it.title)+'</span>'+(meta.length?'<span class="m">'+esc(meta.join(' · '))+'</span>':'')+'</button>')+
     repTag(it)+ddTag(it)+
-    '<button class="pin" data-act="pin" aria-pressed="'+(it.pin?'true':'false')+'" aria-label="우선순위 고정" title="우선순위 고정">'+IC.star+'</button><button class="x" data-act="itemdel" aria-label="'+esc(it.title)+' 삭제" title="삭제">×</button></div><button class="swdel" data-act="itemdel" tabindex="-1" aria-label="'+esc(it.title)+' 삭제"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg></button>';
+    '<button class="pin" data-act="pin" aria-pressed="'+(it.pin?'true':'false')+'" aria-label="별표" title="별표">'+IC.star+'</button><button class="x" data-act="itemdel" aria-label="'+esc(it.title)+' 삭제" title="삭제">×</button></div><button class="swdel" data-act="itemdel" tabindex="-1" aria-label="'+esc(it.title)+' 삭제"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg></button>';
   if(open[it.id]){
     h+='<div class="detail">'+
       '<div class="props"><label class="prop"><span class="pk">기한</span><input class="pv" type="date" id="due-'+it.id+'" data-act="due" value="'+esc(it.due)+'">'+(it.due?'<button type="button" class="dclr" data-act="dueclr" aria-label="기한 지우기" title="기한 지우기"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l8 8M14 6l-8 8"/></svg></button>':'')+'</label>'+
@@ -880,10 +880,10 @@ function itemHTML(it){
       (it.rep==='1y'?'<div class="prop"><span class="pk">날짜</span>'+ydSel('',ydOf(it),false,true)+'</div>':'')+
       '</div>'+
       '<textarea class="dt-note" id="note-'+it.id+'" data-act="note" rows="2" placeholder="메모 추가…" aria-label="메모">'+esc(it.note)+'</textarea>'+
-      '<div class="sublist"><div class="subhead"><span>세부 체크리스트</span>'+(it.subs.length?'<span class="subprog">'+subsDone+'/'+it.subs.length+'</span>':'')+'</div><ul class="subs">'+it.subs.map(function(s,i){
-        return '<li class="'+(s.d?'done':'')+'"><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+' aria-label="'+esc(s.t)+' 완료"> '+(editingSub===it.id+':'+i?'<input class="subedit" id="subedit-'+it.id+'-'+i+'" data-act="subtext" data-i="'+i+'" value="'+esc(s.t)+'" aria-label="세부 항목 수정">':'<span class="subt" data-act="subtoggle" data-i="'+i+'">'+esc(s.t)+'</span><button class="ed" data-act="subedit" data-i="'+i+'" aria-label="'+esc(s.t)+' 수정" title="수정">'+IC.pen+'</button>')+'<button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
+      '<div class="sublist"><div class="subhead"><span>체크리스트</span>'+(it.subs.length?'<span class="subprog">'+subsDone+'/'+it.subs.length+'</span>':'')+'</div><ul class="subs">'+it.subs.map(function(s,i){
+        return '<li class="'+(s.d?'done':'')+'"><input type="checkbox" id="sub-'+it.id+'-'+i+'" data-act="sub" data-i="'+i+'"'+(s.d?' checked':'')+' aria-label="'+esc(s.t)+' 완료"> '+(editingSub===it.id+':'+i?'<input class="subedit" id="subedit-'+it.id+'-'+i+'" data-act="subtext" data-i="'+i+'" value="'+esc(s.t)+'" aria-label="체크리스트 항목 수정">':'<span class="subt" data-act="subtoggle" data-i="'+i+'">'+esc(s.t)+'</span><button class="ed" data-act="subedit" data-i="'+i+'" aria-label="'+esc(s.t)+' 수정" title="수정">'+IC.pen+'</button>')+'<button class="x" data-act="subdel" data-i="'+i+'" aria-label="항목 삭제">×</button></li>';
       }).join('')+'</ul>'+
-      '<div class="subadd"><span class="plus" aria-hidden="true">+</span><input id="subadd-'+it.id+'" class="subin" data-act="subadd" placeholder="세부 항목 추가 후 Enter" aria-label="세부 항목 추가"></div></div>'+
+      '<div class="subadd"><span class="plus" aria-hidden="true">+</span><input id="subadd-'+it.id+'" class="subin" data-act="subadd" placeholder="체크리스트 항목 추가" aria-label="체크리스트 항목 추가"></div></div>'+
       '<div class="dfoot"><button class="dlink" data-act="rename">제목 수정</button><button class="dlink'+(armed===it.id?' armed':'')+'" data-act="del">'+(armed===it.id?'한 번 더 누르면 삭제':'항목 삭제')+'</button></div>'+
       '</div>';
   }
@@ -912,7 +912,7 @@ function catHTML(cat){
     else if(inlineCat!==cat.id)h+='<div class="catempty glass">'+(all.length?'남은 할 일이 없어요.':'아직 항목이 없어요. + 버튼으로 추가하세요.')+'</div>';
   }
   if(inlineCat===cat.id){
-    h+='<div class="inl glass"><span class="chk"></span><input class="inp" id="inl-'+esc(cat.id)+'" data-act="inltitle" placeholder="새 할 일 입력 후 Enter" aria-label="새 할 일"><input type="date" class="inp d" id="inld-'+esc(cat.id)+'" data-act="inldue" aria-label="기한"><button class="btn sm" data-act="inlok">추가</button><button class="btn ghost sm" data-act="inlcancel">닫기</button></div>';
+    h+='<div class="inl glass"><span class="chk"></span><input class="inp" id="inl-'+esc(cat.id)+'" data-act="inltitle" placeholder="할 일 추가" aria-label="새 할 일"><input type="date" class="inp d" id="inld-'+esc(cat.id)+'" data-act="inldue" aria-label="기한"><button class="btn sm" data-act="inlok">추가</button><button class="btn ghost sm" data-act="inlcancel">닫기</button></div>';
   }
   return h+'</section>';
 }
@@ -944,18 +944,18 @@ function wMoney(n){return '$'+n.toLocaleString('en-CA',{maximumFractionDigits:2}
 function wUrl(u){u=String(u||'').trim();if(!u)return '';if(!/^https?:\/\//i.test(u))u='https://'+u;return u;}
 function wHost(u){try{return new URL(wUrl(u)).hostname.replace(/^www\./,'');}catch(e){return '';}}
 function wishRow(x){var st=x.done?'done':'todo';var op=wishOpen===x.id;
- var h='<li class="item shop wish s-'+st+(op?' open-d':'')+'" data-wid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="wishtoggle" aria-label="'+(x.done?'산 것 취소':'샀음으로 표시')+'">'+SICON[st]+'</button><span class="ttl" data-act="wishopen"><span class="t">'+esc(x.name)+'</span>'+(x.note?'<span class="m">'+esc(x.note)+'</span>':'')+'</span>'+
+ var h='<li class="item shop wish s-'+st+(op?' open-d':'')+'" data-wid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="wishtoggle" aria-label="'+(x.done?'구매 취소':'구매 완료로 표시')+'">'+SICON[st]+'</button><span class="ttl" data-act="wishopen"><span class="t">'+esc(x.name)+'</span>'+(x.note?'<span class="m">'+esc(x.note)+'</span>':'')+'</span>'+
   (x.url?'<a class="wlink" href="'+esc(wUrl(x.url))+'" target="_blank" rel="noopener" title="'+esc(wHost(x.url))+'" aria-label="링크 열기">'+IC.link+'</a>':'')+(x.price?'<span class="wprice">'+esc(wShow(x.price))+'</span>':'')+
   '<button class="x" data-act="wishdel" aria-label="'+esc(x.name)+' 삭제">×</button></div><button class="swdel" data-act="wishdel" tabindex="-1" aria-label="'+esc(x.name)+' 삭제"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6"/></svg></button>';
- if(op)h+='<div class="detail wdet"><div class="wgrid"><label class="field">이름<input data-wf="name" value="'+esc(x.name)+'" autocomplete="off"></label><label class="field">가격<input data-wf="price" value="'+esc(x.price||'')+'" placeholder="$0" autocomplete="off"></label><label class="field wl">링크<input data-wf="url" value="'+esc(x.url||'')+'" placeholder="https://" inputmode="url" autocomplete="off"></label><label class="field wl">메모<input data-wf="note" value="'+esc(x.note||'')+'" placeholder="색상, 사이즈, 언제 살지…" autocomplete="off"></label></div></div>';
+ if(op)h+='<div class="detail wdet"><div class="wgrid"><label class="field">이름<input data-wf="name" value="'+esc(x.name)+'" autocomplete="off"></label><label class="field">가격<input data-wf="price" value="'+esc(x.price||'')+'" placeholder="$0" autocomplete="off"></label><label class="field wl">링크<input data-wf="url" value="'+esc(x.url||'')+'" placeholder="https://" inputmode="url" autocomplete="off"></label><label class="field wl">메모<input data-wf="note" value="'+esc(x.note||'')+'" placeholder="색상, 사이즈 등" autocomplete="off"></label></div></div>';
  return h+'</li>';}
 function renderWish(){var t=today();var W=S.wish||[];var left=W.filter(function(x){return !x.done;}),got=W.filter(function(x){return x.done;});
  var sum=left.reduce(function(a,x){return a+wNum(x.price);},0);
  var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span></div>'+vtH1('wish')+'</header>'+viewTabs();
- h+='<form class="shopadd wishadd" id="wishadd"><input class="inp" id="wish-name" placeholder="갖고 싶은 것 입력 후 Enter" aria-label="갖고 싶은 것" autocomplete="off"><input class="inp" id="wish-price" placeholder="가격" aria-label="가격" autocomplete="off"><input class="inp" id="wish-url" placeholder="링크 (선택)" aria-label="링크" inputmode="url" autocomplete="off"><button class="btn" type="submit">추가</button></form>';
+ h+='<form class="shopadd wishadd" id="wishadd"><input class="inp" id="wish-name" placeholder="위시리스트에 추가" aria-label="위시리스트 항목" autocomplete="off"><input class="inp" id="wish-price" placeholder="가격" aria-label="가격" autocomplete="off"><input class="inp" id="wish-url" placeholder="링크 (선택)" aria-label="링크" inputmode="url" autocomplete="off"><button class="btn" type="submit">추가</button></form>';
  h+='<div class="groups">';
- h+='<section class="cat shopsec wishsec"><div class="cath"><div class="catt"><span class="nm">갖고 싶은 것</span><span class="cnt">'+left.length+'</span>'+(sum?'<span class="wsum">합계 '+wMoney(sum)+'</span>':'')+'</div></div>'+(left.length?'<ul class="items">'+left.map(wishRow).join('')+'</ul>':'<div class="catempty">아직 없어요. 위에 입력해서 추가하세요.</div>')+'</section>';
- if(got.length)h+='<section class="cat got"><div class="cath"><div class="catt"><span class="nm">산 것</span><span class="cnt">'+got.length+'</span></div><div class="cata shopcata"><button class="dlink" data-act="wishclear">산 것 모두 지우기</button></div></div><ul class="items">'+got.map(wishRow).join('')+'</ul></section>';
+ h+='<section class="cat shopsec wishsec"><div class="cath"><div class="catt"><span class="nm">위시리스트</span><span class="cnt">'+left.length+'</span>'+(sum?'<span class="wsum">합계 '+wMoney(sum)+'</span>':'')+'</div></div>'+(left.length?'<ul class="items">'+left.map(wishRow).join('')+'</ul>':'<div class="catempty">위시리스트가 비어 있어요.</div>')+'</section>';
+ if(got.length)h+='<section class="cat got"><div class="cath"><div class="catt"><span class="nm">구매 완료</span><span class="cnt">'+got.length+'</span></div><div class="cata shopcata"><button class="dlink" data-act="wishclear">구매 완료 비우기</button></div></div><ul class="items">'+got.map(wishRow).join('')+'</ul></section>';
  h+='</div></div>';
  var ae=document.activeElement,aid=ae&&ae.id,wf=ae&&ae.getAttribute&&ae.getAttribute('data-wf');
  window.__wR=true;try{document.getElementById('root').innerHTML=h;}finally{window.__wR=false;}
@@ -971,14 +971,14 @@ function recRow(x){var op=recOpen===x.id,n=ingLines(x).length;
   '<label class="field wl">재료 <span class="hint">한 줄에 하나</span><textarea data-rf="ing" rows="'+Math.max(4,n+1)+'" placeholder="양파 1개&#10;돼지고기 300g&#10;고추장 2큰술">'+esc(x.ing||'')+'</textarea></label>'+
   '<label class="field wl">만드는 법<textarea data-rf="steps" rows="'+Math.max(4,String(x.steps||'').split('\n').length+1)+'" placeholder="1. 양파를 썬다&#10;2. …">'+esc(x.steps||'')+'</textarea></label>'+
   '<label class="field wl">링크<input data-rf="url" value="'+esc(x.url||'')+'" placeholder="유튜브, 블로그 주소" inputmode="url" autocomplete="off"></label></div>'+
-  '<div class="ractions"><button type="button" class="btn sm" data-act="rectoshop"'+(n?'':' disabled')+'>'+IC.cart+'<span>재료 장보기에 담기</span></button></div></div>';
+  '<div class="ractions"><button type="button" class="btn sm" data-act="rectoshop"'+(n?'':' disabled')+'>'+IC.cart+'<span>재료 장보기로</span></button></div></div>';
  return h+'</li>';}
 function renderRecipe(){var t=today();var R=S.recipes||[];var plan=R.filter(function(x){return x.plan;}),rest=R.filter(function(x){return !x.plan;});
  var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span></div>'+vtH1('recipe')+'</header>'+viewTabs();
- h+='<form class="shopadd recadd" id="recadd"><input class="inp" id="rec-name" placeholder="메뉴 이름 입력 후 Enter" aria-label="메뉴 이름" autocomplete="off"><button class="btn" type="submit">추가</button></form>';
+ h+='<form class="shopadd recadd" id="recadd"><input class="inp" id="rec-name" placeholder="레시피 추가" aria-label="레시피 이름" autocomplete="off"><button class="btn" type="submit">추가</button></form>';
  h+='<div class="groups">';
- h+='<section class="cat shopsec recsec" data-rs="plan"><div class="cath"><div class="catt"><span class="nm">이번 주 메뉴</span><span class="cnt">'+plan.length+'</span></div>'+(plan.length?'<div class="cata shopcata"><button class="dlink" data-act="recplanshop">메뉴 재료 다 담기</button></div>':'')+'</div>'+(plan.length?'<ul class="items">'+plan.map(recRow).join('')+'</ul>':'<div class="catempty">레시피 옆 별을 누르면 여기로 올라와요.</div>')+'</section>';
- h+='<section class="cat shopsec recsec" data-rs="all"><div class="cath"><div class="catt"><span class="nm">레시피</span><span class="cnt">'+rest.length+'</span></div></div>'+(rest.length?'<ul class="items">'+rest.map(recRow).join('')+'</ul>':'<div class="catempty">'+(R.length?'전부 이번 주 메뉴에 있어요.':'아직 없어요. 위에 메뉴 이름을 입력해서 추가하세요.')+'</div>')+'</section>';
+ h+='<section class="cat shopsec recsec" data-rs="plan"><div class="cath"><div class="catt"><span class="nm">이번 주 메뉴</span><span class="cnt">'+plan.length+'</span></div>'+(plan.length?'<div class="cata shopcata"><button class="dlink" data-act="recplanshop">재료 모두 장보기로</button></div>':'')+'</div>'+(plan.length?'<ul class="items">'+plan.map(recRow).join('')+'</ul>':'<div class="catempty">레시피 ★를 누르면 여기로 올라와요.</div>')+'</section>';
+ h+='<section class="cat shopsec recsec" data-rs="all"><div class="cath"><div class="catt"><span class="nm">레시피</span><span class="cnt">'+rest.length+'</span></div></div>'+(rest.length?'<ul class="items">'+rest.map(recRow).join('')+'</ul>':'<div class="catempty">'+(R.length?'전부 이번 주 메뉴에 있어요.':'레시피가 없어요. 위에서 추가하세요.')+'</div>')+'</section>';
  h+='</div></div>';
  var ae=document.activeElement,aid=ae&&ae.id,rf=ae&&ae.getAttribute&&ae.getAttribute('data-rf');
  window.__wR=true;try{document.getElementById('root').innerHTML=h;}finally{window.__wR=false;}
@@ -988,7 +988,7 @@ function recMsg(t){var el=document.getElementById('undoToast');if(!el){el=docume
 function recToShop(list){var add=0,skip=0;mutate(function(){ensureAisles();var A='레시피 재료';if(S.aisles.indexOf(A)<0)S.aisles.push(A);var have={};S.shop.forEach(function(x){if(!x.done)have[x.name.replace(/\s+/g,'')]=1;});
   list.forEach(function(r){ingLines(r).forEach(function(l){var m=l.match(/^(.*?)\s+([\d½¼¾.\/]+\s*\S*|약간|조금|한\s?\S+|두\s?\S+)$/);var nm=m?m[1].trim():l,q=m?m[2].trim():'';var k=nm.replace(/\s+/g,'');if(have[k]){skip++;return;}have[k]=1;S.shop.push({id:uid(),name:nm,qty:q,aisle:A,done:false});add++;});});});
  recMsg(add?'장보기에 '+add+'개 담았어요'+(skip?' (이미 있는 '+skip+'개 제외)':''):'이미 장보기에 다 있어요');}
-function shopRow(x){var st=x.done?'done':'todo';return '<li class="item shop s-'+st+'" data-sid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="shoptoggle" aria-label="'+(x.done?'담기 취소':'담았음으로 표시')+'">'+SICON[st]+'</button><span class="ttl"><span class="t">'+esc(x.name)+'</span>'+(x.qty?'<span class="m">'+esc(x.qty)+'</span>':'')+'</span><button class="x" data-act="shopdel" aria-label="'+esc(x.name)+' 삭제">×</button></div><button class="swdel" data-act="shopdel" tabindex="-1" aria-label="'+esc(x.name)+' 삭제"><svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6\"/></svg></button></li>';}
+function shopRow(x){var st=x.done?'done':'todo';return '<li class="item shop s-'+st+'" data-sid="'+x.id+'"><div class="row"><button class="sicon s-'+st+'" data-act="shoptoggle" aria-label="'+(x.done?'담기 취소':'장바구니에 담기')+'">'+SICON[st]+'</button><span class="ttl"><span class="t">'+esc(x.name)+'</span>'+(x.qty?'<span class="m">'+esc(x.qty)+'</span>':'')+'</span><button class="x" data-act="shopdel" aria-label="'+esc(x.name)+' 삭제">×</button></div><button class="swdel" data-act="shopdel" tabindex="-1" aria-label="'+esc(x.name)+' 삭제"><svg viewBox=\"0 0 20 20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h12M8 6V4.5h4V6M6 6l.8 9.5h6.4L14 6\"/></svg></button></li>';}
 var calMonth=null,calSel=null,lastCalCat=null;
 function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function nthDow(y,m,dow,n){var d=new Date(y,m,1);var off=(dow-d.getDay()+7)%7;return new Date(y,m,1+off+7*(n-1));}
@@ -1104,10 +1104,10 @@ function renderPri(){
   var ts=ymd(t),tl=todayList(),tid={};tl.forEach(function(x){tid[x.id]=1;});
   var nover=tl.filter(function(x){return x.due&&x.due<ts;}).length;
   pins=pins.filter(function(x){return !tid[x.id];});
-  h+='<p class="prisub">오늘 '+tl.length+'개'+(nover?' (지난 것 '+nover+'개)':'')+' · 별표 '+pins.length+'개</p>';
+  h+='<p class="prisub">오늘 '+tl.length+'개'+(nover?' (기한 지남 '+nover+'개)':'')+' · 별표 '+pins.length+'개</p>';
   h+='<div class="groups prilist">';
   if(tl.length)h+='<section class="cat prisec todaysec"><div class="cath"><div class="catt"><span class="nm">오늘</span><span class="cnt">'+tl.length+'</span></div></div><ul class="items">'+tl.map(itemHTML).join('')+'</ul></section>';
-  if(!pins.length&&!tl.length)h+='<div class="catempty">아직 고정한 할 일이 없어요. Agenda 탭에서 항목 오른쪽 ★를 누르면 여기에 모여요.</div>';
+  if(!pins.length&&!tl.length)h+='<div class="catempty">별표한 할 일이 없어요. 할 일 오른쪽 ★를 누르면 여기에 모여요.</div>';
   S.cats.forEach(function(cat){var l=pins.filter(function(x){return x.cat===cat.id;});if(!l.length)return;
     l.sort(function(a,b){return (order[a.status]-order[b.status])||((a.due||'9')<(b.due||'9')?-1:((a.due||'9')>(b.due||'9')?1:0))||(oo(a)-oo(b));});
     h+='<section class="cat prisec"><div class="cath"><div class="catt"><span class="nm">'+esc(cat.name)+'</span><span class="cnt">'+l.length+'</span></div></div><ul class="items">'+l.map(itemHTML).join('')+'</ul></section>';});
@@ -1120,7 +1120,7 @@ function renderShop(){
   var t=today();
   var left=S.shop.filter(function(x){return !x.done;}),got=S.shop.filter(function(x){return x.done;});
   var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span></div>'+vtH1('shop')+'</header>'+viewTabs();
-  h+='<form class="shopadd" id="shopadd"><input class="inp" id="shop-name" placeholder="살 것 입력 후 Enter" aria-label="살 것" autocomplete="off"><input class="inp q" id="shop-qty" placeholder="수량" aria-label="수량" autocomplete="off">'+aisleSelectHTML()+'<button class="btn" type="submit">추가</button></form>';
+  h+='<form class="shopadd" id="shopadd"><input class="inp" id="shop-name" placeholder="장보기 항목 추가" aria-label="장보기 항목" autocomplete="off"><input class="inp q" id="shop-qty" placeholder="수량" aria-label="수량" autocomplete="off">'+aisleSelectHTML()+'<button class="btn" type="submit">추가</button></form>';
   h+='<div class="groups">';
   var empties=[];
   shopGroups().forEach(function(a,ai){var l=left.filter(function(x){return x.aisle===a;});var all=S.shop.filter(function(x){return x.aisle===a;});var known=S.aisles.indexOf(a)>=0;
@@ -1130,12 +1130,12 @@ function renderShop(){
     else h+='<div class="catt"><span class="nm">'+esc(a)+'</span><span class="cnt">'+l.length+'</span></div>';
     h+='<div class="cata"><button class="ib" data-act="aisleadd" title="이 코너에 추가" aria-label="'+esc(a)+'에 추가">'+IC.plus+'</button>'+(known?'<button class="ib" data-act="aisleren" title="이름 변경" aria-label="'+esc(a)+' 이름 변경">'+IC.pen+'</button>':'')+(known&&!all.length?'<button class="ib danger'+(shopArmed===a?' armed':'')+'" data-act="aisledel" title="'+(shopArmed===a?'한 번 더 누르면 삭제':'코너 삭제')+'" aria-label="'+esc(a)+' 삭제">'+IC.trash+'</button>':'')+'</div></div>';
     if(l.length)h+='<ul class="items">'+l.map(shopRow).join('')+'</ul>';
-    if(shopInline===a)h+='<div class="inl shopinl"><input class="inp" id="sinl-name" data-act="sinl" placeholder="'+esc(a)+'에 추가할 것, Enter" aria-label="'+esc(a)+'에 추가할 것" autocomplete="off"><input class="inp q" id="sinl-qty" data-act="sinl" placeholder="수량" aria-label="수량" autocomplete="off"><button class="btn sm" data-act="sinlok">추가</button><button class="btn ghost sm" data-act="sinlclose">닫기</button></div>';
+    if(shopInline===a)h+='<div class="inl shopinl"><input class="inp" id="sinl-name" data-act="sinl" placeholder="'+esc(a)+'에 추가" aria-label="'+esc(a)+'에 추가" autocomplete="off"><input class="inp q" id="sinl-qty" data-act="sinl" placeholder="수량" aria-label="수량" autocomplete="off"><button class="btn sm" data-act="sinlok">추가</button><button class="btn ghost sm" data-act="sinlclose">닫기</button></div>';
     h+='</section>';});
   if(empties.length)h+='<div class="emptyaisles"><span class="ea-l">빈 코너</span>'+empties.map(function(p){return '<button class="eachip" data-act="aisleopen" data-ai="'+p[1]+'" title="'+esc(p[0])+'에 추가">'+esc(p[0])+'</button>';}).join('')+'</div>';
   if(shopAddingAisle)h+='<div class="newcat"><input class="inp" id="aislenew-input" data-act="aislenewinput" placeholder="새 코너 이름 (예: 코스트코)" aria-label="새 코너 이름"><button class="btn sm" data-act="aislenewok">추가</button><button class="btn ghost sm" data-act="aislenewcancel">취소</button></div>';
   else h+='<button class="addcat" data-act="aislenew">'+IC.plus+'코너 추가</button>';
-  if(got.length)h+='<section class="cat got"><div class="cath"><div class="catt"><span class="nm">담은 것</span><span class="cnt">'+got.length+'</span></div><div class="cata shopcata"><button class="dlink" data-act="shopclear">담은 것 모두 지우기</button></div></div><ul class="items">'+got.map(shopRow).join('')+'</ul></section>';
+  if(got.length)h+='<section class="cat got"><div class="cath"><div class="catt"><span class="nm">장바구니</span><span class="cnt">'+got.length+'</span></div><div class="cata shopcata"><button class="dlink" data-act="shopclear">장바구니 비우기</button></div></div><ul class="items">'+got.map(shopRow).join('')+'</ul></section>';
   h+='</div></div>';
   var ae=document.activeElement,aid=ae&&ae.id;
   document.getElementById('root').innerHTML=h;
@@ -1156,7 +1156,7 @@ function render(){
   var soon=S.items.filter(function(it){return it.due&&it.status!=='done'&&dday(it.due)<=7;}).length;
   var h='<div class="wrap"><header class="hero"><div class="eyebrow"><span>'+t.getFullYear()+'. '+(t.getMonth()+1)+'. '+t.getDate()+'. '+WD[t.getDay()]+'요일</span><span id="save" class="save'+(saveErr?' err':'')+'">'+esc(saveMsg)+'</span>'+bgPick()+'</div>'+vtH1('agenda')+'</header>'+viewTabs()+
     '<div class="bento"><div class="tile glass"><span class="k">남은 일</span><span class="v">'+c.open+'</span></div>'+
-    '<div class="tile glass"><span class="k">7일 안에 기한</span><span class="v'+(soon?' hot':'')+'">'+soon+'</span></div>'+
+    '<div class="tile glass"><span class="k">7일 내 기한</span><span class="v'+(soon?' hot':'')+'">'+soon+'</span></div>'+
     '<div class="tile glass"><span class="k">진행 중</span><span class="v">'+(c.doing||0)+'</span></div>'+
     '<div class="tile glass"><span class="k">완료율</span><span class="v">'+pct+'<small>%</small></span><div class="bar"><i style="width:'+pct+'%"></i></div></div></div>';
   h+='<div class="panels one"><div class="panel due glass"><h2><span class="ic">'+IC.cal+'</span>다가오는 기한</h2>'+(dues.length?'<ul class="plist">'+dues.map(function(it){return '<li>'+ddTag(it)+'<button class="go" data-jump="'+it.id+'">'+esc(it.title)+'</button></li>';}).join('')+'</ul>':'<div class="empty">기한이 정해진 항목이 없어요.</div>')+'</div></div>';
@@ -1179,7 +1179,7 @@ function render(){
   }else{
     h+='<button class="addcat" data-act="newcat">'+IC.plus+'분류 추가</button>';
   }
-  h+='</div><div class="note">체크, 상태 변경, 메모는 자동 저장돼요. 항목 제목을 누르면 기한·메모·세부 체크리스트를 편집할 수 있어요.</div></div>';
+  h+='</div><div class="note">체크, 상태 변경, 메모는 자동 저장돼요. 항목 제목을 누르면 기한·메모·체크리스트를 편집할 수 있어요.</div></div>';
   var ae=document.activeElement,aid=ae&&ae.id,selS=null,selE=null;
   try{selS=ae.selectionStart;selE=ae.selectionEnd;}catch(e){}
   document.getElementById('root').innerHTML=h;
