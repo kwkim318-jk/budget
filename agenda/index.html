@@ -1112,7 +1112,7 @@ function evDefRep(c){return (c==='생일'||c==='기념일')?'y':'';}
 function dtField(cls,attr,val,label){return '<span class="dtw '+cls+'"><input class="inp dtin" '+attr+' value="'+esc(val||'')+'" placeholder="YYYY-MM-DD" inputmode="numeric" maxlength="10" autocomplete="off" aria-label="'+label+'"><button type="button" class="dtpk" data-act="dtpick" tabindex="-1" aria-label="달력에서 고르기">'+IC.cal+'</button><input type="date" class="dtnat" tabindex="-1" aria-hidden="true"></span>';}
 function evRowFields(e,isNew){var c=isNew?(evFilter||'생일'):(e.c||''),r=isNew?evDefRep(c):(c==='생일'?'y':evR(e)),cats=evCats();
  var F=function(k){return isNew?'id="evf-'+k+'"':'data-ef="'+k+'"';};
- return '<select class="inp evc-in" '+F('c')+' aria-label="카테고리">'+(isNew?'':'<option value=""'+(c?'':' selected')+'>카테고리 없음</option>')+cats.map(function(x){return '<option'+(x===c?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'</select>'+
+ return '<select class="inp evc-in" '+F('c')+' aria-label="카테고리">'+(isNew?'':'<option value=""'+(c?'':' selected')+'>카테고리 없음</option>')+cats.map(function(x){return '<option'+(x===c?' selected':'')+'>'+esc(x)+'</option>';}).join('')+'<option value="__new">+ 새 카테고리…</option></select>'+
  '<input class="inp evn-in" '+F('n')+' value="'+esc(isNew?'':e.n)+'" placeholder="'+(isNew?'이름 (예: 엄마 생일, 결혼기념일)':'')+'" aria-label="이름" autocomplete="off">'+
  '<select class="inp evr-in" '+F('r')+(c==='생일'?' disabled title="생일은 매년 반복"':'')+' aria-label="반복">'+EVREP.map(function(p){return '<option value="'+p[0]+'"'+(p[0]===r?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select>'+
  '<label class="evchk"><input type="checkbox" '+(isNew?'id="evf-multi"':'data-evmulti="1"')+(!isNew&&e.e?' checked':'')+'><span>기간</span></label>'+
@@ -1387,6 +1387,7 @@ root.addEventListener('click',function(e){
 });
 root.addEventListener('change',function(e){
   if(e.target.classList&&e.target.classList.contains('dtnat')){var tx=e.target.parentNode.querySelector('.dtin');tx.value=e.target.value;tx.classList.remove('bad');tx.dispatchEvent(new Event('change',{bubbles:true}));return;}
+  if(e.target.value==='__new'&&(e.target.id==='evf-c'||e.target.getAttribute('data-ef')==='c')){evCatAdding=true;render();var ci=document.getElementById('evcat-new');if(ci){ci.focus();ci.scrollIntoView({block:'nearest'});}return;}
   if(e.target.id==='evf-c'){var rr=document.getElementById('evf-r');if(rr){var bd=e.target.value==='생일';if(bd||!rr.dataset.touched)rr.value=evDefRep(e.target.value);rr.disabled=bd;rr.title=bd?'생일은 매년 반복':'';}return;}
   if(e.target.id==='evf-r'){e.target.dataset.touched='1';return;}
   if(e.target.id==='evf-multi'){var on=e.target.checked,f0=document.getElementById('evf'),en=document.getElementById('evf-e');f0.querySelector('.dte').classList.toggle('hide',!on);f0.querySelector('.evtil').hidden=!on;if(on){var sd=normDate(document.getElementById('evf-d').value)||ymd(today());if(!normDate(en.value)||normDate(en.value)<=sd)en.value=addD(sd,1);en.focus();}return;}
