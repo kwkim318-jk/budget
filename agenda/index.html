@@ -622,7 +622,7 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .calcell .hn.s-ab b,:root[data-bg="linear"] .hset.s-ab i,:root[data-bg="linear"] .hm .s-ab{color:#ff8a8a;background-color:#ff8a8a}
 :root[data-bg="linear"] .calcell .hn.s-us b,:root[data-bg="linear"] .hset.s-us i,:root[data-bg="linear"] .hm .s-us{color:#8fb4ff;background-color:#8fb4ff}
 :root[data-bg="linear"] .calcell .hn.s-me b,:root[data-bg="linear"] .hset.s-rp i{background:transparent!important;box-shadow:inset 0 0 0 1.5px var(--muted)}:root[data-bg="linear"] .hset.s-me i,:root[data-bg="linear"] .hm .s-me{color:#f2a7c8;background-color:#f2a7c8}
-:root[data-bg="linear"] .calcell .hn.s-me{color:var(--ink)}
+:root[data-bg="linear"] .calcell .hn.s-me{color:#f2a7c8}:root[data-bg="linear"] .calcell .hn.s-me b{display:none}
 :root[data-bg="linear"] .calcell .hn.s-kr b,:root[data-bg="linear"] .hset.s-kr i,:root[data-bg="linear"] .hm .s-kr{color:#6fd0a0;background-color:#6fd0a0}
 :root[data-bg="linear"] .calcell .hn b{background:none!important}
 :root[data-bg="linear"] .calcell .hn.s-ab:not(.opt){color:#ff8a8a}
@@ -642,7 +642,7 @@ body.dragging-item,body.dragging-item *{cursor:grabbing!important;user-select:no
 :root[data-bg="linear"] .mwd{font-size:11px;color:var(--faint)}
 :root[data-bg="linear"] .mlc{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding-top:1px}
 :root[data-bg="linear"] .mlh{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:20px}:root[data-bg="linear"] .mlh b{font-size:9px;font-weight:600;margin-right:5px}
-:root[data-bg="linear"] .mlh.s-ab b{color:#ff8a8a}:root[data-bg="linear"] .mlh.s-me b{color:#f2a7c8}:root[data-bg="linear"] .mlh.s-me{color:var(--ink)}:root[data-bg="linear"] .mlh.s-us b{color:#8fb4ff}:root[data-bg="linear"] .mlh.s-kr b{color:#6fd0a0}
+:root[data-bg="linear"] .mlh.s-ab b{color:#ff8a8a}:root[data-bg="linear"] .mlh.s-me b{color:#f2a7c8}:root[data-bg="linear"] .mlh.s-me{color:#f2a7c8}:root[data-bg="linear"] .mlh.s-me b{display:none}:root[data-bg="linear"] .mlh.s-us b{color:#8fb4ff}:root[data-bg="linear"] .mlh.s-kr b{color:#6fd0a0}
 :root[data-bg="linear"] .mli{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--ink);font:inherit;font-size:13px;text-align:left;padding:2px 6px;margin:0 -6px;border-radius:6px;cursor:pointer;min-width:0;line-height:20px}
 :root[data-bg="linear"] .mli:hover,:root[data-bg="linear"] .mld:hover{background:rgba(255,255,255,.05)}
 :root[data-bg="linear"] .mli .cd{flex:none}:root[data-bg="linear"] .mli .mt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}:root[data-bg="linear"] .mli .mc{flex:none;font-size:11.5px;color:var(--faint);max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1013,8 +1013,8 @@ var HOLI={};
 var KRLUNAR={2024:[[2,10],[5,15],[9,17]],2025:[[1,29],[5,5],[10,6]],2026:[[2,17],[5,24],[9,25]],2027:[[2,7],[5,13],[9,15]],2028:[[1,27],[5,2],[10,3]],2029:[[2,13],[5,20],[9,22]],2030:[[2,3],[5,9],[9,12]],2031:[[1,23],[5,28],[10,1]],2032:[[2,11],[5,16],[9,19]],2033:[[1,31],[5,6],[9,8]],2034:[[2,19],[5,25],[9,27]],2035:[[2,8],[5,15],[9,16]],2036:[[1,28],[5,3],[10,4]],2037:[[2,15],[5,22],[9,24]],2038:[[2,4],[5,11],[9,13]],2039:[[1,24],[4,30],[10,2]],2040:[[2,12],[5,18],[9,21]],2041:[[2,1],[5,7],[9,10]],2042:[[1,22],[5,26],[9,28]],2043:[[2,10],[5,16],[9,17]],2044:[[1,30],[5,5],[10,5]],2045:[[2,17],[5,24],[9,25]]};
 var KRTEMP={'2026-06-03':'지방선거일'};
 var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'],WDE=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-var HOLCD={ab:'AB',us:'US',kr:'KR',me:'●'},HOLNM={ab:'Alberta',us:'US',kr:'한국',me:'일정'};
-var HOLSETS=[['ab','Alberta'],['us','US'],['kr','한국'],['me','내 일정'],['rp','반복']];
+var HOLCD={ab:'AB',us:'US',kr:'KR',me:''},HOLNM={ab:'Alberta',us:'US',kr:'한국',me:'일정'};
+var HOLSETS=[['ab','Alberta'],['us','US'],['kr','한국'],['me','내 일정'],['rp','루틴']];
 function holSets(){var o=S.holSets||{};return {ab:o.ab!==false,us:o.us!==false,kr:o.kr!==false,me:o.me!==false,rp:o.rp!==false};}
 function holidays(y){if(HOLI[y])return HOLI[y];var H={};function add(d,n,s,opt){var k=ymd(d);(H[k]=H[k]||[]).push({n:n,s:s,o:!!opt});}
  function ab(d,n,opt){add(d,n,'ab',opt);}
