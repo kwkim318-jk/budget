@@ -1238,7 +1238,7 @@ function render(){
       '<div class="field" id="new-when"><span class="wl">요일</span><span class="w-wk">'+wdPick('new',[today().getDay()],true)+'</span><span class="w-md" hidden>'+mdPick('newm',[today().getDate()],false)+'</span><span class="w-yd" hidden>'+ydSel('new',[today().getMonth(),today().getDate()],false,false)+'</span></div>'+
       '<div class="actions"><button type="button" class="btn ghost" data-act="showadd">취소</button><button type="submit" class="btn">추가</button></div></form>';
   }
-  var rgrp=routineHTML('routine')+routineHTML('chores'),groups=S.cats.map(catHTML).join('');
+  var rgrp=routineHTML('chores')+routineHTML('routine'),groups=S.cats.map(catHTML).join('');
   var nag=S.items.filter(function(it){return !it.rep;}).filter(match).length;
   h+=rgrp+'<div class="gblock"><div class="grouphd">Agenda<span class="cnt">'+nag+'</span></div><div class="groups">'+(groups||'<div class="empty">조건에 맞는 항목이 없어요.</div>');
   if(addingCat){
