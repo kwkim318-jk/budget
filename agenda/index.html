@@ -1056,7 +1056,7 @@ function dpHit(e,ds){if(!e.dp||ds<e.d)return null;var k=Math.round((parse(ds)-pa
 function dpNext(e){if(!e.dp)return null;var ts=ymd(today()),best=null;DPM.forEach(function(k){var d=addD(e.d,k-1);if(d>=ts&&(!best||d<best[0]))best=[d,k+'일'];});if(evR(e)!=='y'){var t=today(),Y=t.getFullYear();for(var y=Y;y<=Y+1;y++){var d2=y+'-'+mdFix(y,e.d.slice(5)),n=y-+e.d.slice(0,4);if(n>0&&d2>=ts&&(!best||d2<best[0])){best=[d2,n+'주년'];break;}}}return best;}
 var KRAGE={1:'돌',60:'환갑',61:'진갑',69:'칠순',76:'희수',79:'팔순',87:'미수',89:'구순',98:'백수'};
 function evBadges(e,occ){var b=[],r=evR(e),n=+occ.slice(0,4)-+e.d.slice(0,4);
- if(e.c==='생일'&&r==='y'&&n>=0){b.push(['age','만 '+n+'세']);if(KRAGE[n])b.push(['kr',KRAGE[n]]);else{var nx=Object.keys(KRAGE).map(Number).filter(function(a){return a>n&&a>1;}).sort(function(x,y){return x-y;})[0];if(nx)b.push(['krn',KRAGE[nx]+' '+(+e.d.slice(0,4)+nx)]);}}
+ if(e.c==='생일'&&r==='y'&&n>=0){b.push(['age','만 '+n+'세']);if(KRAGE[n])b.push(['kr',KRAGE[n]]);else{var nx=Object.keys(KRAGE).map(Number).filter(function(a){return a>n&&a>1;}).sort(function(x,y){return x-y;})[0];if(nx&&nx-n<=5)b.push(['krn',KRAGE[nx]+' '+(+e.d.slice(0,4)+nx)]);}}
  else if(e.c==='기념일'&&r==='y'&&n>=1)b.push(['ann',n+'주년']);
  return b;}
 function evOn(ds){var out=[];(S.evs||[]).forEach(function(e){if(evRange(e,ds)){var s0=occOnOrBefore(e,ds),bd=evBadges(e,s0).filter(function(x){return x[0]==='kr'||x[0]==='ann';}).map(function(x){return x[1];});out.push({n:e.n+(bd.length?' · '+bd.join(' · '):''),s:'me',o:false,id:e.id,y:evR(e)==='y'});}var h=dpHit(e,ds);if(h)out.push({n:e.n+' '+h,s:'me',o:false,id:e.id,y:false});});return out;}
