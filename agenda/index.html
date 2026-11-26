@@ -902,6 +902,7 @@ function routineHTML(kind){
   var hint=hab?'할 일을 펼쳐서 유형을 Routine으로 바꾸면 여기로 모여요. 운동, 독서처럼 꾸준히 하는 것.':'할 일을 펼쳐서 유형을 Chores로 바꾸면 여기로 모여요. 청소, 빨래, 분리수거처럼 주기적으로 하는 집안일.';
   return '<div class="gblock"><div class="grouphd">'+(hab?'Routine':'Chores')+'<span class="cnt">'+list.length+'</span></div><div class="groups rgroups"><section class="cat routinesec">'+(list.length?'<ul class="items">'+list.map(itemHTML).join('')+'</ul>':'<div class="catempty glass">'+hint+'</div>')+'</section></div></div>';
 }
+function catMsg(t){var el=document.getElementById('undoToast');if(!el){el=document.createElement('div');el.id='undoToast';el.setAttribute('role','status');document.body.appendChild(el);}el.innerHTML='<span>'+esc(t)+'</span>';el.className='show';clearTimeout(window.__msgT);window.__msgT=setTimeout(function(){el.className='';},2600);}
 function catHTML(cat){
   var any=S.items.filter(function(it){return it.cat===cat.id;});
   var all=any.filter(function(it){return !it.rep;});
@@ -919,7 +920,7 @@ function catHTML(cat){
   }
   h+='<div class="cata"><button class="ib" data-act="catadd" title="이 분류에 할 일 추가" aria-label="이 분류에 할 일 추가">'+IC.plus+'</button>'+
      '<button class="ib" data-act="catren" title="이름 변경" aria-label="분류 이름 변경">'+IC.pen+'</button>';
-  if(!any.length)h+='<button class="ib danger'+(armedCat===cat.id?' armed':'')+'" data-act="catdel" title="'+(armedCat===cat.id?'한 번 더 누르면 삭제':'분류 삭제')+'" aria-label="분류 삭제">'+IC.trash+'</button>';
+  if(S.cats.length>1)h+='<button class="ib danger'+(armedCat===cat.id?' armed':'')+'" data-act="catdel" title="'+(armedCat===cat.id?'한 번 더 누르면 삭제'+(any.length?' (할 일 '+any.length+'개는 '+(cat.name==='기타'?'다른 분류':'기타')+'로 이동)':''):'분류 삭제')+'" aria-label="분류 삭제">'+IC.trash+'</button>';
   h+='</div></div>';
   if(!isCol){
     if(list.length)h+='<ul class="items">'+list.map(itemHTML).join('')+'</ul>';
@@ -1357,7 +1358,7 @@ root.addEventListener('click',function(e){
   if(act==='catadd'){inlineCat=catId;if(collapsed[catId]){delete collapsed[catId];keepCollapsed();}render();var ni2=document.getElementById('inl-'+catId);if(ni2){ni2.focus({preventScroll:true});ni2.scrollIntoView({block:'nearest',behavior:'smooth'});}return;}
   if(act==='inlok'){commitInline(catId);return;}
   if(act==='inlcancel'){inlineCat=null;render();return;}
-  if(act==='catdel'){if(armedCat===catId){mutate(function(){S.cats=S.cats.filter(function(c){return c.id!==catId;});armedCat=null;delete collapsed[catId];keepCollapsed();});}else{armedCat=catId;render();}return;}
+  if(act==='catdel'){if(armedCat===catId){var moved=0,toName='';mutate(function(){var dc=S.cats.filter(function(c){return c.id===catId;})[0];var its=S.items.filter(function(x){return x.cat===catId;});if(its.length){var dest=S.cats.filter(function(c){return c.id!==catId&&c.name==='기타';})[0];if(!dest&&dc&&dc.name==='기타')dest=S.cats.filter(function(c){return c.id!==catId;})[0];if(!dest){dest={id:uid(),name:'기타'};S.cats.push(dest);}its.forEach(function(x){x.cat=dest.id;});moved=its.length;toName=dest.name;}S.cats=S.cats.filter(function(c){return c.id!==catId;});armedCat=null;delete collapsed[catId];keepCollapsed();});if(moved)catMsg('할 일 '+moved+'개를 '+toName+'(으)로 옮겼어요');}else{armedCat=catId;render();}return;}
   if(act==='wdmenu'){var pk0=a.closest('.wdpick'),key=pk0.getAttribute('data-key');wdOpen=(wdOpen===key)?null:key;document.querySelectorAll('.wdpick').forEach(function(p){var o=p.getAttribute('data-key')===wdOpen;p.classList.toggle('open',o);p.querySelector('.wdmenu').hidden=!o;p.querySelector('.wdbtn').setAttribute('aria-expanded',String(o));if(o)fitMenu(p.querySelector('.wdmenu'));});return;}
   if(act==='mdtog'){var pm=a.closest('.wdpick'),mv=+a.getAttribute('data-v'),cm=pm.getAttribute('data-mds').split(',').filter(Boolean).map(Number);var mi=cm.indexOf(mv);if(mi>=0){if(cm.length===1)return;cm.splice(mi,1);}else cm.push(mv);
     if(pm.getAttribute('data-key')==='newm'){pm.dataset.touched='1';pm.setAttribute('data-mds',cm.join(','));a.setAttribute('aria-pressed',String(mi<0));pm.querySelector('.wdbtn').textContent=mdsLabel(cm);return;}
