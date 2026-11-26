@@ -1006,6 +1006,8 @@ const HORIZON=new Date(MONTHS[MONTHS.length-1].y,MONTHS[MONTHS.length-1].m+1,0);
 const mFull=k=>{const y=Math.floor(k/12),m=k%12;return (y%100)+"년 "+(m+1)+"월"};
 
 // ---------- the event engine ----------
+// 카드 잔액(명세서)이 들어 있고 다음 상환일이 다음 달이면 = 이번 달 그 카드 사용분은 명세서 안에 있다고 봄. 지금 반영으로 더한 금액은 명세서 아님
+function coversC(c){if(!c)return false;if(c.cov===ymS(T0))return true;const a=c.cbA&&c.cbA.m===ymS(T0)?num(c.cbA.v):0;return num(c.bal)-a>0.005&&ymKey(nextOn(dayOf(c.day)))===CUR+1}
 function simulate(){
   const ev=[]; const items=[]; // items: {kind,i,start,steps:[{d,left}]}
   const push=(d,label,amt,cat,extra)=>{if(d>=T0&&d<=HORIZON)ev.push(Object.assign({d,label,amt,cat},extra||{}))};
@@ -1021,7 +1023,7 @@ function simulate(){
   // essentials
   const cardEss=S.ess.filter(e=>e.how==="card").reduce((a,e)=>a+num(e.v),0);
   // 카드 잔액(명세서)이 들어 있고 다음 상환일이 다음 달이면 = 이번 달 그 카드 사용분은 명세서 안에 있다고 봄
-  const covers=c=>!!c&&num(c.bal)>0.005&&ymKey(nextOn(dayOf(c.day)))===CUR+1;
+  const covers=coversC;
   // 카드에 연결된 할부: 다음 명세서에 들어 있는 회차 금액 (명세서 금액에서 떼서 할부 플랜으로 보여주기)
   const PIS={};(S.plans||[]).forEach(p=>{const lc=p.card&&(S.cards||[]).find(c=>c.id===p.card);if(!lc||num(lc.bal)<=0.005)return;const b=num(p.bal),n=Math.max(0,Math.round(num(p.n)));if(!(b>0)||p.payoff||!n)return;const day=dayOf(p.day);let d=planStart(p);while(d<T0)d=addMonthKeep(d,day);if(d<=nextOn(dayOf(lc.day)))PIS[lc.id]=(PIS[lc.id]||0)+b/n});
   const CB={}; // card spending by card id -> month key -> {amt,names}
@@ -1639,6 +1641,7 @@ function onField(e){
     it[f]=(f==="name"||f==="card"||f==="dir"||f==="how"||f==="freq"||f==="type"||f==="from"||f==="to"||t.type==="date"||t.type==="month")?t.value:(t.type==="checkbox"?t.checked:num(t.value));
     if(t.dataset.list==="ess"&&f==="freq"&&it.subs&&it.subs.length)it.v=subSum(it);
     if(t.dataset.list==="plans"&&f!=="name")it.asOf=iso(T0);
+    if(t.dataset.list==="cards"&&f==="bal")delete it.cbA;
     if(t.dataset.list==="alloc"&&f==="type")it.name=ALLOC[it.type];
     if(t.dataset.list==="alloc"&&f==="total"){pctFix(it);pctShow(+t.dataset.i);mark("bank",false);return}
     if(t.dataset.list==="alloc"&&(f==="from"||f==="to")){mark("bank",true);return}
@@ -2353,13 +2356,13 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
     if(kind==="plan"){const q=T.plans[i];return {name:q.name,d:nextOn(dayOf(q.day)),rec:true}}}catch(_){}return null};
   const payNow=(k,P,shift)=>{const p=k.split(":"),kind=p[0],i=+p[1],j=+p[2];P=P||T0;const snap={s:JSON.parse(JSON.stringify(S)),d:(typeof D!=="undefined"&&D&&D!==S)?JSON.parse(JSON.stringify(D)):null};const b0=JSON.stringify(S);const id=LID();const PD=P.getDate(),PI=iso(P);
     const run=T=>{if(!T)return;const B0=bankTot(T);let ent=null;
-      if(kind==="ess"||kind==="alloc"){const g=kind==="ess"?T.ess[i]:T.alloc[i];const x=g&&g.subs&&g.subs[j];if(!x)return;const d=nextOcc(kind,g,x);if(!d)return;const v=kind==="ess"?num(x.v):subVAt(g,x,ymKey(d));if(!(v>0))return;const how=x.how||"bank";const before=pick(x,["pdL","day","date"]);let cb=null;
-        if(how.startsWith("card:")){const c=(T.cards||[]).find(c=>c.id===how.slice(5));if(c){cb={id:c.id,v};c.bal=r2(num(c.bal)+v)}}else bankAdd(T,-v);
+      if(kind==="ess"||kind==="alloc"){const g=kind==="ess"?T.ess[i]:T.alloc[i];const x=g&&g.subs&&g.subs[j];if(!x)return;const d=nextOcc(kind,g,x);if(!d)return;if(kind==="alloc"&&!activeAt(g,ymKey(d)))return;const v=kind==="ess"?num(x.v):subVAt(g,x,ymKey(d));if(!(v>0))return;const how=x.how||"bank";const before=pick(x,["pdL","day","date"]);let cb=null;
+        if(how.startsWith("card:")){const c=(T.cards||[]).find(c=>c.id===how.slice(5));if(c&&!(ymKey(d)===ymKey(T0)&&coversC(c))){const m=ymS(T0),a0=c.cbA&&c.cbA.m===m?num(c.cbA.v):0;cb={id:c.id,v,a0:c.cbA?Object.assign({},c.cbA):null};c.bal=r2(num(c.bal)+v);c.cbA={m,v:r2(a0+v)}}}else bankAdd(T,-v);
         let pdq=iso(d);if(shift){const mo=(x.freq||"mo")==="mo";if(mo)x.day=PD;else x.date=PI;pdq=PI}
         x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:nmOf(g.name,x.name),amt:how.startsWith("card:")?-v:-v,card:!!cb,rev:{list:kind,i,j,name:x.name,before,cb,pdq}}}
       else if(kind==="inc"){const x=T.incomes[i];if(!x)return;const a=num(x.amt),d=incNext(x);if(!d||!(a>0))return;const before=pick(x,["pdL","date"]);bankAdd(T,a);let pdq=iso(d);if(shift){x.date=PI;pdq=PI}x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:x.name,amt:a,rev:{list:"incomes",i,name:x.name,before,pdq}}}
       else if(kind==="one"){const o=T.oneoffs[i];if(!o)return;const a=num(o.amt);if(!a)return;const before=pick(o,["amt","date","paidAmt","paidOn"]);const v=o.dir==="in"?a:-a;bankAdd(T,v);o.paidAmt=v;o.paidOn=PI;o.amt=0;o.date="";ent={label:o.name,amt:v,rev:{list:"oneoffs",i,name:o.name,before}}}
-      else if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;const before=pick(c,["bal","day","pdM"]);bankAdd(T,-b);c.bal=0;{const m=ymS(P);const o=Object.assign({},c.pdM||{});o[m]=Math.round(((o[m]||0)+b)*100)/100;Object.keys(o).sort().slice(0,-3).forEach(k=>delete o[k]);c.pdM=o}if(shift)c.day=PD;ent={label:c.name,amt:-b,rev:{list:"cards",i,name:c.name,before}}}
+      else if(kind==="card"){const c=T.cards[i];if(!c)return;const b=num(c.bal);if(!(b>0))return;const before=pick(c,["bal","day","pdM","cov","cbA"]);const cf=nextOn(dayOf(c.day));const pl=[];(T.plans||[]).forEach((q,qi)=>{if(q.card!==c.id||q.payoff)return;const qb=num(q.bal),qn=Math.max(0,Math.round(num(q.n)));if(!(qb>0)||!qn)return;const qd=dayOf(q.day);let dd=planStart(q);while(dd<T0)dd=addMonthKeep(dd,qd);if(dd>cf)return;pl.push({i:qi,name:q.name,before:pick(q,["bal","n","skip","asOf"])});const per=qn<=1?qb:r2(qb/qn);q.bal=r2(qb-per);q.n=qn-1;q.asOf=iso(T0);q.skip=true});if(ymKey(cf)===ymKey(T0)+1)c.cov=ymS(T0);delete c.cbA;bankAdd(T,-b);c.bal=0;{const m=ymS(P);const o=Object.assign({},c.pdM||{});o[m]=Math.round(((o[m]||0)+b)*100)/100;Object.keys(o).sort().slice(0,-3).forEach(k=>delete o[k]);c.pdM=o}if(shift)c.day=PD;ent={label:c.name,amt:-b,rev:{list:"cards",i,name:c.name,before,pl}}}
       else if(kind==="loan"){const l=T.loans[i];if(!l)return;const b=num(l.bal),pm=num(l.pmt);if(!(b>0)||!(pm>0))return;const before=pick(l,["bal","skipM","day"]);const pay=Math.min(pm,b);bankAdd(T,-pay);l.bal=r2(b-pay);if(shift){l.day=PD;l.skipM=ymS(P)}else{const nx=ymS(nextOn(dayOf(l.day)));if(!l.skipM||l.skipM<nx)l.skipM=nx}ent={label:l.name,amt:-pay,rev:{list:"loans",i,name:l.name,before}}}
       else if(kind==="plan"){const q=T.plans[i];if(!q)return;const b=num(q.bal),n=Math.max(0,Math.round(num(q.n)));if(!(b>0))return;const before=pick(q,["bal","n","skip","asOf","day"]);const per=q.payoff||n<=1?b:r2(b/n);bankAdd(T,-per);q.bal=r2(b-per);if(!q.payoff)q.n=Math.max(0,n-1);if(shift)q.day=PD;q.asOf=iso(T0);q.skip=true;ent={label:q.name,amt:-per,rev:{list:"plans",i,name:q.name,before}}}
       if(ent){ent.bankD=r2(bankTot(T)-B0);T.log=(T.log||[]).filter(e=>e.src==="now"&&e.d>=iso(new Date(T0.getTime()-60*864e5))).concat([Object.assign({id,d:PI,src:"now",bal:bankTot(T)},ent)])}};
@@ -2369,7 +2372,8 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
   window.__logCancel=id=>{const run=T=>{if(!T||!T.log)return;const e=T.log.find(x=>x.id===id);if(!e)return;const r=e.rev;
       if(r){let o=null;if(r.list==="ess"||r.list==="alloc"){const g=(r.list==="ess"?T.ess:T.alloc)[r.i];o=g&&g.subs&&g.subs[r.j]}else o=(T[r.list]||[])[r.i];
         if(o&&o.name===r.name)Object.entries(r.before).forEach(([f,v])=>{if(v===null)delete o[f];else o[f]=v});
-        if(r.cb){const c=(T.cards||[]).find(c=>c.id===r.cb.id);if(c)c.bal=r2(Math.max(0,num(c.bal)-r.cb.v))}}
+        if(r.cb){const c=(T.cards||[]).find(c=>c.id===r.cb.id);if(c){c.bal=r2(Math.max(0,num(c.bal)-r.cb.v));if(r.cb.a0)c.cbA=r.cb.a0;else delete c.cbA}}
+        (r.pl||[]).forEach(z=>{const q=(T.plans||[])[z.i];if(q&&q.name===z.name)Object.entries(z.before).forEach(([f,v])=>{if(v===null)delete q[f];else q[f]=v})})}
       if(e.bankD)bankAdd(T,-e.bankD);T.log=T.log.filter(x=>x.id!==id)};
     run(S);if(typeof D!=="undefined"&&D&&D!==S)run(D);changed(true)};
   document.addEventListener("change",e=>{const c=e.target;if(!c.matches||!c.matches("#grpBody input[data-pchk]"))return;e.stopPropagation();const p=c.dataset.pchk.split(":"),kind=p[0],i=+p[1],j=+p[2];const get=T=>kind==="inc"?(T.incomes||[])[i]:(((kind==="ess"?T.ess:T.alloc)||[])[i]||{subs:[]}).subs[j];const x0=get(S);if(!x0)return;const f=firstOcc(kind,x0);if(!f)return;const q=iso(f);
