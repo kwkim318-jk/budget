@@ -1012,7 +1012,13 @@ const mFull=k=>{const y=Math.floor(k/12),m=k%12;return (y%100)+"년 "+(m+1)+"월
 
 // ---------- the event engine ----------
 // 카드 잔액(명세서)이 들어 있고 다음 상환일이 다음 달이면 = 이번 달 그 카드 사용분은 명세서 안에 있다고 봄. 지금 반영으로 더한 금액은 명세서 아님
-function coversC(c){if(!c)return false;if(c.cov===ymS(T0))return true;const a=c.cbA&&c.cbA.m===ymS(T0)?num(c.cbA.v):0;return num(c.bal)-a>0.005&&ymKey(nextOn(dayOf(c.day)))===CUR+1}
+// 카드 마감일: 마감일까지 쓴 것 = 그 명세서. 명세서 금액(잔액)은 다음 상환일 바로 전 마감까지
+const clDay=c=>{const v=Math.round(num(c&&c.close));return v>=1&&v<=31?v:0};
+const closeOf=(c,d)=>{const k=clDay(c);let x=onDay(d.getFullYear(),d.getMonth(),k);if(x<d)x=addMonthKeep(x,k);return x};
+const dueAfter=(c,x)=>{const k=dayOf(c.day);let y=onDay(x.getFullYear(),x.getMonth(),k);if(y<=x)y=addMonthKeep(y,k);return y};
+const lastClose=c=>{const nd=nextOn(dayOf(c.day)),k=clDay(c);let x=onDay(nd.getFullYear(),nd.getMonth(),k);if(x>=nd)x=onDay(nd.getFullYear(),nd.getMonth()-1,k);let y=onDay(T0.getFullYear(),T0.getMonth(),k);if(y>=T0)y=onDay(T0.getFullYear(),T0.getMonth()-1,k);return x<y?x:y};
+function occBetween(f,day,date,A,B){const out=[];f=f||"mo";if(f==="mo"){const dd=dayOf(day);let d=onDay(A.getFullYear(),A.getMonth(),dd),g=0;while(d<=A&&g++<5)d=addMonthKeep(d,dd);while(d<=B&&g++<60){out.push(d);d=addMonthKeep(d,dd)}}else{let d=pd(date);if(!d)return out;const dd=d.getDate();let g=0;while(d<=A&&g++<3000)d=stepDate(d,f,dd);while(d<=B&&g++<3000){out.push(d);d=stepDate(d,f,dd)}}return out}
+function coversC(c){if(!c)return false;if(clDay(c))return false;if(c.cov===ymS(T0))return true;const a=c.cbA&&c.cbA.m===ymS(T0)?num(c.cbA.v):0;return num(c.bal)-a>0.005&&ymKey(nextOn(dayOf(c.day)))===CUR+1}
 function simulate(){
   const ev=[]; const items=[]; // items: {kind,i,start,steps:[{d,left}]}
   const push=(d,label,amt,cat,extra)=>{if(d>=T0&&d<=HORIZON)ev.push(Object.assign({d,label,amt,cat},extra||{}))};
@@ -1032,14 +1038,18 @@ function simulate(){
   // 카드에 연결된 할부: 다음 명세서에 들어 있는 회차 금액 (명세서 금액에서 떼서 할부 플랜으로 보여주기)
   const PIS={};(S.plans||[]).forEach(p=>{const lc=p.card&&(S.cards||[]).find(c=>c.id===p.card);if(!lc||num(lc.bal)<=0.005)return;const b=num(p.bal),n=Math.max(0,Math.round(num(p.n)));if(!(b>0)||p.payoff||!n)return;const day=dayOf(p.day);let d=planStart(p);while(d<T0)d=addMonthKeep(d,day);if(d<=nextOn(dayOf(lc.day)))PIS[lc.id]=(PIS[lc.id]||0)+b/n});
   const CB={}; // card spending by card id -> month key -> {amt,names}
+  const CBD={},CBAD={}; // 마감일 있는 카드: 상환일(iso) -> 금액
   S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const v=num(x.v);if(v<=0)return;const lc=linkedCard(x),isCard=(x.how||"bank")!=="bank",tag=isCard&&!lc?" (카드값)":"";
+    if(lc&&clDay(lc)){const L=lastClose(lc);occBetween(x.freq||"mo",x.day,x.date,L,HORIZON).forEach(d=>{const k=iso(dueAfter(lc,closeOf(lc,d)));const b=(CBD[lc.id]=CBD[lc.id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=v;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+v;const sk=e.name+"\u0001"+(x.name||e.name);o.subs[sk]=(o.subs[sk]||0)+v});return}
     occ(x.freq||"mo",x.day,x.date).filter(d=>!(x.pdL||[]).includes(iso(d))).forEach(d=>{const k=ymKey(d);
       if(lc){if(k<CUR||(k===CUR&&(d<T0||covers(lc))))return;const b=(CB[lc.id]=CB[lc.id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=v;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+v;const sk=e.name+"\u0001"+(x.name||e.name);o.subs[sk]=(o.subs[sk]||0)+v;return}
       if(isCard&&k===CUR)return;push(d,`${x.name===e.name?e.name:e.name+" · "+x.name}${tag}`,-v,"ess",{ecat:e.name,esub:x.name||e.name})})}));
   // goals / fun paid from bank or card
   const CBA={};
   (S.alloc||[]).forEach(a=>(a.subs||[]).forEach(x=>{if(!x.how)return;const lbl=`${a.name} · ${x.name}`;
-    const f=x.freq||"mo";const ds=f==="mo"?occ("mo",x.day||1):occ(f,null,x.date||iso(nextWd(x.wd??5)));
+    const f=x.freq||"mo";const lcA=x.how!=="bank"&&(S.cards||[]).find(c=>c.id===x.how.slice(5));
+    if(lcA&&clDay(lcA)){occBetween(f,x.day||1,x.date||iso(nextWd(x.wd??5)),lastClose(lcA),HORIZON).forEach(d=>{const k=ymKey(d);if(!activeAt(a,k))return;const v=subVAt(a,x,k);if(v<=0)return;const dk=iso(dueAfter(lcA,closeOf(lcA,d)));const b=(CBAD[lcA.id]=CBAD[lcA.id]||{});const o=(b[dk]=b[dk]||{amt:0,names:new Set()});o.amt+=v;o.names.add(x.name)});return}
+    const ds=f==="mo"?occ("mo",x.day||1):occ(f,null,x.date||iso(nextWd(x.wd??5)));
     ds.filter(d=>!(x.pdL||[]).includes(iso(d))).forEach(d=>{const k=ymKey(d);if(!activeAt(a,k))return;const v=subVAt(a,x,k);if(v<=0)return;
       if(x.how==="bank"){push(d,lbl,-v,"alloc",{});return}
       const id=x.how.slice(5);if(k<CUR||(k===CUR&&(d<T0||covers((S.cards||[]).find(c=>c.id===id)))))return;const b=(CBA[id]=CBA[id]||{});const o=(b[k]=b[k]||{amt:0,names:new Set()});o.amt+=v;o.names.add(x.name)})}));
@@ -1049,19 +1059,23 @@ function simulate(){
     S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const lc=linkedCard(x);if(!lc||lc.id!==id)return;const v=num(x.v);if(v<=0)return;const f=x.freq||"mo";let n=0;
       if(f==="mo"){const d=onDay(Y,Mo,dayOf(x.day));if(d>=M1&&d<END)n=1}else{let p=pd(x.date);if(p){const dd=p.getDate();let g=0;while(p<M1&&g++<600)p=stepDate(p,f,dd);while(p<END&&g++<900){n++;p=stepDate(p,f,dd)}}}
       if(!n)return;const t=v*n;o.sum+=t;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+t;const k=e.name+"\u0001"+(x.name||e.name);o.subs[k]=(o.subs[k]||0)+t}));return o};
+  // 마감일 있는 카드: 지금 명세서 기간(전 마감 다음날 ~ 마지막 마감)에 쓴 필수지출
+  const stmtCard=c=>{const L=lastClose(c),k=clDay(c),A=onDay(L.getFullYear(),L.getMonth()-1,k),o={cats:{},subs:{},sum:0,names:new Set()};
+    S.ess.forEach(e=>(e.subs||[]).forEach(x=>{const lc=linkedCard(x);if(!lc||lc.id!==c.id)return;const v=num(x.v);if(v<=0)return;const n=occBetween(x.freq||"mo",x.day,x.date,A,L).length;if(!n)return;const t=v*n;o.sum+=t;o.names.add(x.name);o.cats[e.name]=(o.cats[e.name]||0)+t;const sk=e.name+"\u0001"+(x.name||e.name);o.subs[sk]=(o.subs[sk]||0)+t}));return o};
   // 이번 달 오늘 전에 카드로 쓴 필수지출 중 카드 잔액에 안 들어 있는 만큼은 다음 카드값에 더하기
-  (S.cards||[]).forEach(c=>{if(covers(c))return;const pc=pastCard(c.id);if(pc.sum<=0.005)return;const un=pc.sum,f=1;const b=(CB[c.id]=CB[c.id]||{});const o=(b[CUR]=b[CUR]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=un;pc.names.forEach(n=>o.names.add(n));Object.entries(pc.cats).forEach(([k,v])=>o.cats[k]=(o.cats[k]||0)+v*f);Object.entries(pc.subs).forEach(([k,v])=>o.subs[k]=(o.subs[k]||0)+v*f)});
+  (S.cards||[]).forEach(c=>{if(covers(c)||clDay(c))return;const pc=pastCard(c.id);if(pc.sum<=0.005)return;const un=pc.sum,f=1;const b=(CB[c.id]=CB[c.id]||{});const o=(b[CUR]=b[CUR]||{amt:0,names:new Set(),cats:{},subs:{}});o.amt+=un;pc.names.forEach(n=>o.names.add(n));Object.entries(pc.cats).forEach(([k,v])=>o.cats[k]=(o.cats[k]||0)+v*f);Object.entries(pc.subs).forEach(([k,v])=>o.subs[k]=(o.subs[k]||0)+v*f)});
   const sim=(list,kind)=>list.forEach((l,i)=>{
     let b=num(l.bal); const full=kind==="cards", r=full?0:num(l.rate)/100/12, pm=full?b:num(l.pmt); const day=dayOf(l.day); let d=nextOn(day); if(kind==="loans"&&l.skipM&&l.skipM===ymS(d))d=addMonthKeep(d,day); const it={kind,i,start:b,steps:[],end:b<1?"done":null,next:b>=1&&pm>0?d:null};
     if(pm>0){ let guard=0;
       while(d<=HORIZON&&b>0.5&&guard++<60){const pay=Math.min(pm,b);b=(b-pay)*(1+r);
-        if(d>=T0){if(full){const pin=guard===1?Math.min(pay,PIS[l.id]||0):0;const pe=pay-pin;let ex={ecat:"카드값",esub:l.name,kind,dname:l.name};if(guard===1&&covers(l)){const pc=pastCard(l.id,true);if(pc.sum>0.005){const sc=pc.sum>pe?pe/pc.sum:1,cats={},subs={};Object.entries(pc.cats).forEach(([c,v])=>cats[c]=v*sc);Object.entries(pc.subs).forEach(([c,v])=>subs[c]=v*sc);const rest=pe-pc.sum*sc;if(rest>0.005){cats["카드값"]=rest;subs["카드값\u0001"+l.name]=rest}ex={ecats:cats,esubs:subs,kind,dname:l.name}}}if(pe>0.005)push(d,l.name+" 카드값",-pe,"ess",ex)}else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
+        if(d>=T0){if(full){const pin=guard===1?Math.min(pay,PIS[l.id]||0):0;const pe=pay-pin;let ex={ecat:"카드값",esub:l.name,kind,dname:l.name};if(guard===1&&(covers(l)||clDay(l))){const pc=clDay(l)?stmtCard(l):pastCard(l.id,true);if(pc.sum>0.005){const sc=pc.sum>pe?pe/pc.sum:1,cats={},subs={};Object.entries(pc.cats).forEach(([c,v])=>cats[c]=v*sc);Object.entries(pc.subs).forEach(([c,v])=>subs[c]=v*sc);const rest=pe-pc.sum*sc;if(rest>0.005){cats["카드값"]=rest;subs["카드값\u0001"+l.name]=rest}ex={ecats:cats,esubs:subs,kind,dname:l.name}}}if(pe>0.005)push(d,l.name+" 카드값",-pe,"ess",ex)}else push(d,l.name,-pay,"debt",{kind,dname:l.name});it.steps.push({d,left:b});}
         if(b<=0.5&&!it.end)it.end=d; d=addMonthKeep(d,day);}
     }
     items.push(it);
   });
   sim(S.loans,"loans"); sim(S.cards,"cards");
   // spending put on a card: last month's spending is paid on that card's payment day
+  S.cards.forEach(c=>{[[CBD[c.id],"ess"],[CBAD[c.id],"alloc"]].forEach(([b,cat])=>Object.entries(b||{}).forEach(([k,o])=>{const d=pd(k);if(o.amt>0&&d>=T0&&d<=HORIZON)push(d,`${c.name} 카드값 (${[...o.names].join(", ")})`,-o.amt,cat,cat==="ess"?{ecats:o.cats,esubs:o.subs}:{})}))});
   S.cards.forEach(c=>{const b=CB[c.id]||{};if(!CB[c.id]&&!CBA[c.id])return;const day=dayOf(c.day);let d=nextOn(day),g=0;
     while(d<=HORIZON&&g++<24){const o=b[ymKey(d)-1];if(o&&o.amt>0)push(d,`${c.name} 카드값 (${[...o.names].join(", ")})`,-o.amt,"ess",{ecats:o.cats,esubs:o.subs});const oa=(CBA[c.id]||{})[ymKey(d)-1];if(oa&&oa.amt>0)push(d,`${c.name} 카드값 (${[...oa.names].join(", ")})`,-oa.amt,"alloc",{});d=addMonthKeep(d,day)}
   });
@@ -1181,7 +1195,7 @@ function buildInputs(){
     <div class="fields"><label class="fld"><span>구분</span><span class="money"><select data-list="oneoffs" data-i="${i}" data-f="dir" aria-label="구분"><option value="in" ${o.dir==="in"?"selected":""}>수입</option><option value="out" ${o.dir!=="in"?"selected":""}>지출</option></select></span></label>${fld("금액","oneoffs",i,"amt",o.amt)}${fld("날짜","oneoffs",i,"date",o.date,{type:"date"})}</div></div>`).join("")+`<button class="add" type="button" data-add="oneoffs">＋ 추가</button>`+upd("oneoffs");
 
   $("cards").innerHTML=D.cards.map((c,i)=>`<div class="row"><input class="tname" value="${esc(c.name)}" data-list="cards" data-i="${i}" data-f="name" aria-label="카드 이름"><span class="end" id="ce${i}"></span><button class="del" type="button" data-del="cards" data-i="${i}">삭제</button>
-    <div class="fields">${fld("잔액","cards",i,"bal",c.bal)}${fld("상환일 (매월)","cards",i,"day",c.day,{unit:"일",step:"1"})}</div></div>`).join("")+`<button class="add" type="button" data-add="cards">＋ 카드 추가</button>`+upd("cards");
+    <div class="fields">${fld("잔액","cards",i,"bal",c.bal)}${fld("상환일 (매월)","cards",i,"day",c.day,{unit:"일",step:"1"})}${fld("마감일 (매월)","cards",i,"close",c.close??"",{unit:"일",step:"1"})}</div></div>`).join("")+`<button class="add" type="button" data-add="cards">＋ 카드 추가</button>`+upd("cards");
 
   $("plans").innerHTML=D.plans.map((p,i)=>`<div class="row"><input class="tname" value="${esc(p.name)}" data-list="plans" data-i="${i}" data-f="name" aria-label="플랜 이름"><span class="end" id="pe${i}"></span><button class="del" type="button" data-del="plans" data-i="${i}">삭제</button>
     <div class="fields">${fld("잔액","plans",i,"bal",p.bal)}${fld("남은 횟수","plans",i,"n",p.n,{unit:"회",step:"1"})}${fld("상환일 (매월)","plans",i,"day",p.day,{unit:"일",step:"1"})}<label class="fld"><span>카드</span><span class="money"><select data-list="plans" data-i="${i}" data-f="card" aria-label="카드"><option value="">없음</option>${D.cards.map(c=>`<option value="${esc(c.id||"")}" ${p.card&&p.card===c.id?"selected":""}>${esc(c.name)}</option>`).join("")}</select></span></label></div>
@@ -2363,7 +2377,7 @@ addEventListener("scroll",()=>{up();kick()},{passive:true});addEventListener("to
   const payNow=(k,P,shift)=>{const p=k.split(":"),kind=p[0],i=+p[1],j=+p[2];P=P||T0;const snap={s:JSON.parse(JSON.stringify(S)),d:(typeof D!=="undefined"&&D&&D!==S)?JSON.parse(JSON.stringify(D)):null};const b0=JSON.stringify(S);const id=LID();const PD=P.getDate(),PI=iso(P);
     const run=T=>{if(!T)return;const B0=bankTot(T);let ent=null;
       if(kind==="ess"||kind==="alloc"){const g=kind==="ess"?T.ess[i]:T.alloc[i];const x=g&&g.subs&&g.subs[j];if(!x)return;const d=nextOcc(kind,g,x);if(!d)return;if(kind==="alloc"&&!activeAt(g,ymKey(d)))return;const v=kind==="ess"?num(x.v):subVAt(g,x,ymKey(d));if(!(v>0))return;const how=x.how||"bank";const before=pick(x,["pdL","day","date"]);let cb=null;
-        if(how.startsWith("card:")){const c=(T.cards||[]).find(c=>c.id===how.slice(5));if(c&&!(ymKey(d)===ymKey(T0)&&coversC(c))){const m=ymS(T0),a0=c.cbA&&c.cbA.m===m?num(c.cbA.v):0;cb={id:c.id,v,a0:c.cbA?Object.assign({},c.cbA):null};c.bal=r2(num(c.bal)+v);c.cbA={m,v:r2(a0+v)}}}else bankAdd(T,-v);
+        if(how.startsWith("card:")){const c=(T.cards||[]).find(c=>c.id===how.slice(5));if(c&&!clDay(c)&&!(ymKey(d)===ymKey(T0)&&coversC(c))){const m=ymS(T0),a0=c.cbA&&c.cbA.m===m?num(c.cbA.v):0;cb={id:c.id,v,a0:c.cbA?Object.assign({},c.cbA):null};c.bal=r2(num(c.bal)+v);c.cbA={m,v:r2(a0+v)}}}else bankAdd(T,-v);
         let pdq=iso(d);if(shift){const mo=(x.freq||"mo")==="mo";if(mo)x.day=PD;else x.date=PI;pdq=PI}
         x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:nmOf(g.name,x.name),amt:how.startsWith("card:")?-v:-v,card:!!cb,rev:{list:kind,i,j,name:x.name,before,cb,pdq}}}
       else if(kind==="inc"){const x=T.incomes[i];if(!x)return;const a=num(x.amt),d=incNext(x);if(!d||!(a>0))return;const before=pick(x,["pdL","date"]);bankAdd(T,a);let pdq=iso(d);if(shift){x.date=PI;pdq=PI}x.pdL=(x.pdL||[]).filter(q=>q>=iso(T0)).concat([pdq]);ent={label:x.name,amt:a,rev:{list:"incomes",i,name:x.name,before,pdq}}}
