@@ -20,17 +20,21 @@
   const g=document.createElement("div");g.id="authGate";g.hidden=true;
   g.innerHTML=`<form class="ag"><h1>가계부</h1><input type="email" name="e" placeholder="이메일" autocomplete="email" required><input type="password" name="p" placeholder="비밀번호 (6자 이상)" autocomplete="current-password" minlength="6" required><button type="submit">로그인</button><button type="button" class="sub" data-a="up">가입</button><div class="msg"></div></form>`;
   const mount=()=>document.body.appendChild(g);if(document.body)mount();else document.addEventListener("DOMContentLoaded",mount);
+  // 서버 데이터 받기 전엔 화면 가림 (예시 데이터 안 보이게)
+  const veil=document.createElement("div");veil.id="loadVeil";veil.style.cssText="position:fixed;inset:0;z-index:9998;background:var(--bg,#EDE9E1);transition:opacity .25s ease";
+  let lifted=false;const lift=()=>{lifted=true;if(!veil.isConnected)return;veil.style.opacity="0";setTimeout(()=>veil.remove(),260)};
+  if(ok){const mv=()=>{if(!lifted)document.body.appendChild(veil)};if(document.body)mv();else document.addEventListener("DOMContentLoaded",mv);setTimeout(lift,8000)}
   const f=g.querySelector("form"),msg=g.querySelector(".msg");
-  const done=s=>{uid=s.user.id;g.hidden=true;res(true)};
+  const done=s=>{uid=s.user.id;g.hidden=true;res(true)};const showGate=()=>{g.hidden=false;lift()};
   f.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="로그인 중…";const {data,error}=await sb.auth.signInWithPassword({email:f.e.value.trim(),password:f.p.value});if(error){msg.textContent=/confirm/i.test(error.message)?"메일 인증 필요":"이메일 또는 비밀번호 확인";return}done(data.session)});
   g.querySelector('[data-a="up"]').addEventListener("click",async()=>{if(!f.reportValidity())return;msg.textContent="가입 중…";const {data,error}=await sb.auth.signUp({email:f.e.value.trim(),password:f.p.value,options:{emailRedirectTo:location.origin+location.pathname}});if(error){msg.textContent="가입 실패: "+error.message;return}if(data.session)done(data.session);else msg.textContent="인증 메일 보냄 · 메일의 링크 누른 뒤 로그인"});
-  if(ok)sb.auth.getSession().then(({data})=>{if(data.session)done(data.session);else g.hidden=false});else res(false);
+  if(ok)sb.auth.getSession().then(({data})=>{if(data.session)done(data.session);else showGate()});else res(false);
   window.__logout=async()=>{if(sb)await sb.auth.signOut();try{localStorage.removeItem("budget3")}catch(_){}location.reload()};
   const snap=row=>({exists:!!row,data:()=>row?row.data:undefined,metadata:{hasPendingWrites:false}});
   const mkRef=path=>({
     async set(body){const {error}=await sb.from("budgets").upsert({user_id:uid,doc:path,data:body,updated_at:new Date().toISOString()});if(error){const e=new Error(error.message);e.code="unavailable";throw e}},
     onSnapshot(cb,onErr){let live=true,ch=null;
-      (async()=>{const {data,error}=await sb.from("budgets").select("data").eq("user_id",uid).eq("doc",path).maybeSingle();if(!live)return;if(error){onErr&&onErr({code:"unavailable"});return}cb(snap(data));
+      (async()=>{const {data,error}=await sb.from("budgets").select("data").eq("user_id",uid).eq("doc",path).maybeSingle();if(!live)return;if(error){onErr&&onErr({code:"unavailable"});lift();return}cb(snap(data));requestAnimationFrame(()=>requestAnimationFrame(lift));
         ch=sb.channel("b-"+path).on("postgres_changes",{event:"*",schema:"public",table:"budgets",filter:"user_id=eq."+uid},p=>{if(live&&p.new&&p.new.doc===path)cb(snap(p.new))}).subscribe()})();
       return()=>{live=false;if(ch)sb.removeChannel(ch)}}
   });
@@ -42,5 +46,5 @@
 })();
 
 // 새 버전 올라오면 앱 다시 열 때(화면으로 돌아올 때) 자동으로 새로고침
-(()=>{const V="2026-11-27-1";const chk=()=>{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{if(t&&t.trim()&&t.trim()!==V){const k="rl_"+t.trim();try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(_){}location.reload()}}).catch(()=>{})};
+(()=>{const V="2026-11-27-2";const chk=()=>{fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).then(t=>{if(t&&t.trim()&&t.trim()!==V){const k="rl_"+t.trim();try{if(sessionStorage.getItem(k))return;sessionStorage.setItem(k,"1")}catch(_){}location.reload()}}).catch(()=>{})};
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")chk()});window.addEventListener("load",()=>setTimeout(chk,1500))})();
